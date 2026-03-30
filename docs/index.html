@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>TG Notify</title>
+<title>FleetVid</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-height:100vh;}
@@ -775,15 +775,14 @@ async function confirmPost(){
   let failReason = '';
   for(const v of items){
     const link = ytLink(v);
-    const text = `📹 *${v.title}*\n🏢 ${v.channel} · ${v.views}\n\n${link}`;
+    const text = '📹 ' + v.title + '\n🏢 ' + v.channel + ' · ' + v.views + '\n\n' + link;
     try {
-      const res = await fetch(`https://api.telegram.org/bot${group.botToken}/sendMessage`, {
+      const res = await fetch('https://api.telegram.org/bot' + group.botToken + '/sendMessage', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
           chat_id: group.chatId,
-          text,
-          parse_mode: 'Markdown',
+          text: text,
           disable_web_page_preview: false
         })
       });

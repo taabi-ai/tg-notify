@@ -126,6 +126,9 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
 .cat-fuel{background:#f3e5f5;color:#4a148c;}
 .cat-compliance{background:#e0f2f1;color:#004d40;}
 .cat-critical{background:#ffebee;color:#b71c1c;}
+.meta-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-right:5px;margin-bottom:6px;}
+.meta-customer{background:#e8eaf6;color:#283593;}
+.meta-critical{background:#ffebee;color:#c62828;}
 
 /* MODALS */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;padding:16px;}
@@ -300,7 +303,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
     </div>
     <div class="modal-body">
       <div class="post-group-selector" id="post-group-selector-wrap">
-        <label>📡 Post to Telegram Group(s)</label>
+        <label>📡 Auto-Routing by Customer Group</label>
         <div id="post-group-select" class="post-group-list"></div>
         <div class="post-group-no-groups" id="post-no-groups-msg" style="display:none">⚠️ No Telegram groups configured. Please add a group in Settings first.</div>
       </div>
@@ -344,6 +347,12 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
           <option value="compliance">Compliance</option>
           <option value="critical">Critical</option>
         </select>
+        <label class="f-label" style="margin-top:10px">Customer Group</label>
+        <select id="add-customer"></select>
+        <label class="f-label" style="margin-top:10px;display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;font-size:12px;">
+          <input type="checkbox" id="add-critical"/>
+          Mark as critical customer issue
+        </label>
         <label class="f-label" style="margin-top:10px">Duration (e.g. 5:30)</label>
         <input type="text" id="add-dur" placeholder="0:00"/>
         <label class="f-label" style="margin-top:10px">Views</label>

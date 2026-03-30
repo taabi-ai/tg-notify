@@ -52,6 +52,14 @@ const LOCAL_VIDEO_FILES = [
   'store-aisle-detection.mp4',
   'worker-zone-detection.mp4'
 ];
+const CRITICAL_VIDEO_FILES = new Set([
+  'bolt-detection.mp4',
+  'bolt-multi-size-detection.mp4',
+  'classroom.mp4',
+  'driver-action-recognition.mp4',
+  'fruit-and-vegetable-detection.mp4',
+  'head-pose-face-detection-female-and-male.mp4'
+]);
 function titleFromFileName(fileName){
   return fileName
     .replace('.mp4','')
@@ -65,20 +73,25 @@ function categoryForIndex(index){
 }
 
 let videos = [
-  ...LOCAL_VIDEO_FILES.map((fileName, index)=>({
+  ...LOCAL_VIDEO_FILES.map((fileName, index)=>{
+    const isCritical = CRITICAL_VIDEO_FILES.has(fileName);
+    return {
     id:index+1,
     ytId:null,
     title:titleFromFileName(fileName),
     channel:'Intel IoT DevKit',
-    cat:categoryForIndex(index),
+    cat:isCritical ? 'critical' : categoryForIndex(index),
     duration:'Local MP4',
     views:'Ready for /sendVideo',
     desc:'Local video from docs/videos; cards preview using thumbnail playback and source link is restricted to github.com.',
     mp4Url:'videos/' + fileName,
     telegramVideoUrl:null,
     githubUrl:'https://github.com/intel-iot-devkit/sample-videos/blob/master/' + fileName,
+    customerGroupId: tgGroups[index % tgGroups.length]?.id || tgGroups[0]?.id || null,
+    isCritical,
     userAdded:false
-  }))
+    };
+  })
 ];
 let nextId = videos.length + 1;
 let currentView = 'card';
@@ -281,6 +294,33 @@ function telegramVideoLink(v){
   }
   return ytLink(v);
 }
+function getDefaultGroup(){
+  return tgGroups.find(g=>g.isDefault) || tgGroups[0] || null;
+}
+function getVideoGroup(v){
+  if(v && v.customerGroupId){
+    const mapped = tgGroups.find(g=>g.id===v.customerGroupId);
+    if(mapped) return mapped;
+  }
+  return getDefaultGroup();
+}
+function getVideoCustomerName(v){
+  return getVideoGroup(v)?.name || 'Unassigned Customer';
+}
+function getRoutingTargets(items){
+  const byGroup = new Map();
+  items.forEach(v=>{
+    const group = getVideoGroup(v);
+    if(!group) return;
+    if(!byGroup.has(group.id)) byGroup.set(group.id, {group, videos:[]});
+    byGroup.get(group.id).videos.push(v);
+  });
+  return Array.from(byGroup.values());
+}
+function customerMetaHtml(v){
+  const critical = v.isCritical ? '<span class="meta-badge meta-critical">🚨 Critical</span>' : '';
+  return `<span class="meta-badge meta-customer">👥 ${getVideoCustomerName(v)}</span>${critical}`;
+}
 function catBadge(cat){
   const c=CATEGORIES.find(x=>x.key===cat)||{label:cat};
   return `<span class="cat-badge cat-${cat}">${c.label}</span>`;
@@ -316,6 +356,7 @@ function renderVideos(){
           ${catBadge(v.cat)}
           <div class="card-title">${v.title}</div>
           <div class="card-channel">${v.channel}</div>
+          <div>${customerMetaHtml(v)}</div>
           <div style="margin-bottom:8px"><a class="modal-video-link" href="${ytLink(v)}" target="_blank" rel="noopener">github.com source</a></div>
           <div class="card-footer">
             <span class="card-views">${v.views}</span>
@@ -342,8 +383,9 @@ function renderVideos(){
         </div>
         <div class="list-body">
           ${catBadge(v.cat)}
-          <div class="list-title">${v.title}${v.userAdded?' <em style="color:#e94560;font-style:normal;font-size:10px;font-weight:700">MY VIDEO</em>':''}${v.mp4Url?' <em style="color:#246a38;font-style:normal;font-size:10px;font-weight:700">🐙 GitHub MP4</em>':''}</div>
+          <div class="list-title">${v.title}${v.userAdded?' <em style="color:#e94560;font-style:normal;font-size:10px;font-weight:700">MY VIDEO</em>':''}${v.mp4Url?' <em style="color:#246a38;font-style:normal;font-size:10px;font-weight:700">🐙 GitHub MP4</em>':''}${v.isCritical?' <em style="color:#c62828;font-style:normal;font-size:10px;font-weight:700">🚨 Critical</em>':''}</div>
           <div class="list-channel">${v.channel}</div>
+          <div><span class="meta-badge meta-customer">👥 ${getVideoCustomerName(v)}</span></div>
           <div><a class="modal-video-link" href="${ytLink(v)}" target="_blank" rel="noopener">github.com source</a></div>
           <div class="list-desc">${v.desc}</div>
         </div>
@@ -361,7 +403,7 @@ function renderVideos(){
 }
 
 // ── POST MODAL ────────────────────────────────────────────────────
-function populateGroupDropdown(){
+function populateGroupDropdown(items){
   const sel = document.getElementById('post-group-select');
   const msg = document.getElementById('post-no-groups-msg');
   const btn = document.getElementById('post-confirm-btn');
@@ -369,21 +411,19 @@ function populateGroupDropdown(){
   if(!tgGroups.length){
     sel.style.display='none'; msg.style.display='block'; btn.disabled=true; return;
   }
+  const targets = getRoutingTargets(items || []);
+  if(!targets.length){
+    sel.style.display='none'; msg.style.display='block'; btn.disabled=true; return;
+  }
   sel.style.display='block'; msg.style.display='none'; btn.disabled=false;
-  sel.innerHTML = tgGroups.map(g=>{
+  sel.innerHTML = targets.map(target=>{
+    const g = target.group;
     const warn = (!g.botToken||!g.chatId) ? '<span class="warn">Not configured</span>' : '';
-    return `<label class="post-group-check">
-      <input type="checkbox" class="post-group-cb" value="${g.id}" ${g.isDefault?'checked':''}/>
-      <span>${g.name}${g.isDefault?' (Default)':''}</span>
+    return `<div class="post-group-check">
+      <span>${g.name}${g.isDefault?' (Default)':''} · ${target.videos.length} video(s)</span>
       ${warn}
-    </label>`;
+    </div>`;
   }).join('');
-}
-function getSelectedPostGroups(){
-  const checked = Array.from(document.querySelectorAll('.post-group-cb:checked'));
-  return checked
-    .map(cb=>tgGroups.find(g=>g.id===parseInt(cb.value,10)))
-    .filter(Boolean);
 }
 function toggleThumbVideo(id,e){
   if(e){ e.preventDefault(); e.stopPropagation(); }
@@ -408,11 +448,12 @@ function openPostModal(ids){
   postTarget=ids||Array.from(selected);
   if(!postTarget.length) return;
   const items=postTarget.map(id=>videos.find(v=>v.id===id)).filter(Boolean);
+  const targets = getRoutingTargets(items);
   const multi=items.length>1;
   document.getElementById('post-modal-title').textContent=multi?`📤 Post ${items.length} Videos to Telegram`:'📤 Post to Telegram';
   document.getElementById('post-modal-intro').textContent=multi
-    ?`The following ${items.length} video links will be posted to the selected Telegram groups:`
-    :'The following video link will be posted to the selected Telegram groups:';
+    ?`The following ${items.length} videos will be auto-routed to ${targets.length} customer group(s):`
+    :'The following video will be auto-routed to its assigned customer group:';
   document.getElementById('post-modal-items').innerHTML=items.map(v=>`
     <div class="modal-video-item">
       <div class="modal-mini-thumb">
@@ -420,39 +461,40 @@ function openPostModal(ids){
       </div>
       <div class="modal-video-info">
         <div class="modal-video-title">${v.title}</div>
-        <div class="modal-video-ch">${v.channel} · ${v.views}</div>
+        <div class="modal-video-ch">${v.channel} · ${v.views} · 👥 ${getVideoCustomerName(v)}</div>
         ${v.mp4Url?'<div style="font-size:10px;font-weight:700;color:#1b5e20;background:#e8f5e9;display:inline-block;padding:2px 8px;border-radius:8px;margin-bottom:4px">📹 Will send as Video</div><br>':''}
         <a class="modal-video-link" href="${ytLink(v)}" target="_blank">${ytLink(v)}</a>
       </div>
     </div>`).join('');
-  populateGroupDropdown();
+  populateGroupDropdown(items);
   const btn=document.getElementById('post-confirm-btn');
   btn.className='modal-confirm'; btn.textContent='✈ Confirm & Post'; btn.disabled=false;
   const errEl=document.getElementById('post-error-msg'); if(errEl){errEl.style.display='none';errEl.textContent='';}
   openModal('post-modal');
 }
 async function confirmPost(){
-  const groups = getSelectedPostGroups();
+  const items = postTarget.map(id=>videos.find(v=>v.id===id)).filter(Boolean);
+  const targets = getRoutingTargets(items);
   const btn = document.getElementById('post-confirm-btn');
-  if(!groups.length){
+  if(!targets.length){
     const errEl = document.getElementById('post-error-msg');
-    if(errEl){ errEl.textContent='❌ Select at least one Telegram group.'; errEl.style.display='block'; }
+    if(errEl){ errEl.textContent='❌ No valid customer group mapping found for selected videos.'; errEl.style.display='block'; }
     return;
   }
 
   btn.disabled=true;
   btn.textContent='Posting…';
-  const items = postTarget.map(id=>videos.find(v=>v.id===id)).filter(Boolean);
 
   let allOk = true;
   let failReason = '';
-  for(const group of groups){
+  for(const target of targets){
+    const group = target.group;
     if(!group.botToken || !group.chatId){
       allOk = false;
       failReason = 'Group "' + group.name + '" is missing Bot Token or Chat ID.';
       break;
     }
-    for(const v of items){
+    for(const v of target.videos){
       const link = ytLink(v);
       const caption = '📹 ' + v.title + '\n🏢 ' + v.channel + ' · ' + v.views + '\n\n' + link;
       try {
@@ -499,7 +541,7 @@ async function confirmPost(){
     updateSelBar();
     renderVideos();
     btn.className='modal-confirm done';
-    btn.textContent = `✓ Posted to ${groups.length} group(s)!`;
+    btn.textContent = `✓ Routed to ${targets.length} customer group(s)!`;
     setTimeout(()=>closeModal('post-modal'),1500);
   } else {
     btn.disabled=false;
@@ -514,9 +556,24 @@ async function confirmPost(){
 function openAddModal(){
   ['add-url','add-title','add-channel','add-dur','add-views','add-desc','add-mp4'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('add-cat').value='software';
+  document.getElementById('add-critical').checked=false;
+  populateCustomerSelect();
   document.getElementById('yt-preview').style.display='none';
   const ms=document.getElementById('mp4-status'); if(ms){ms.style.display='none';ms.textContent='';}
   openModal('add-modal');
+}
+function populateCustomerSelect(){
+  const sel = document.getElementById('add-customer');
+  if(!sel) return;
+  if(!tgGroups.length){
+    sel.innerHTML = '<option value="">No customer groups available</option>';
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  const def = getDefaultGroup();
+  sel.innerHTML = tgGroups.map(g=>`<option value="${g.id}">${g.name}</option>`).join('');
+  if(def) sel.value = String(def.id);
 }
 function previewYT(){
   const id=document.getElementById('add-url').value.trim().includes('github.com');
@@ -546,17 +603,22 @@ function addVideo(){
   const url=document.getElementById('add-url').value.trim();
   const title=document.getElementById('add-title').value.trim();
   if(!title){alert('Title is required.');return;}
+  const isCritical = document.getElementById('add-critical').checked;
+  const selectedCustomer = parseInt(document.getElementById('add-customer').value,10);
+  const customerGroupId = Number.isNaN(selectedCustomer) ? (getDefaultGroup()?.id || null) : selectedCustomer;
   const mp4Url=document.getElementById('add-mp4').value.trim();
   videos.unshift({
     id:nextId++, ytId:null, title,
     channel:document.getElementById('add-channel').value.trim()||'Unknown Channel',
-    cat:document.getElementById('add-cat').value,
+    cat:isCritical?'critical':document.getElementById('add-cat').value,
     duration:document.getElementById('add-dur').value.trim()||'–',
     views:document.getElementById('add-views').value.trim()||'–',
     desc:document.getElementById('add-desc').value.trim()||'',
     mp4Url: mp4Url||null,
     telegramVideoUrl: mp4Url&&/^https:\/\//i.test(mp4Url) ? mp4Url : null,
     githubUrl: url.includes('github.com') ? url : GITHUB_SOURCE_LINK,
+    customerGroupId,
+    isCritical,
     userAdded:true,
   });
   closeModal('add-modal');
@@ -571,6 +633,7 @@ function openModal(id){
   if(id==='settings-modal'){
     renderTgGroupList();
     renderMemberList();
+    populateCustomerSelect();
   }
   document.getElementById(id).classList.add('open');
 }

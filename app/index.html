@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>TG Notify</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-height:100vh;}
+
+/* LOGIN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);}
+.login-card{background:#fff;border-radius:18px;padding:48px 40px;width:360px;box-shadow:0 24px 64px rgba(0,0,0,.35);}
+.login-logo{font-size:26px;font-weight:800;color:#0f3460;margin-bottom:4px;}
+.login-logo span{color:#e94560;}
+.login-sub{font-size:13px;color:#999;margin-bottom:32px;}
+.f-label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:6px;}
+.f-input{width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:9px;font-size:14px;margin-bottom:16px;outline:none;transition:border .2s;}
+.f-input:focus{border-color:#0f3460;}
+.login-btn{width:100%;padding:12px;background:#0f3460;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s;}
+.login-btn:hover{background:#e94560;}
+.login-err{color:#e94560;font-size:12px;margin-top:10px;display:none;}
+
+/* APP */
+#app{display:none;}
+.topbar{background:#fff;border-bottom:1px solid #e8e8f0;padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 8px rgba(0,0,0,.06);}
+.topbar-logo{font-size:20px;font-weight:800;color:#0f3460;}
+.topbar-logo span{color:#e94560;}
+.topbar-right{display:flex;align-items:center;gap:9px;}
+.view-toggle{display:flex;background:#f0f0f5;border-radius:8px;overflow:hidden;}
+.view-btn{padding:7px 11px;border:none;background:transparent;cursor:pointer;font-size:15px;color:#666;transition:background .2s;}
+.view-btn.active{background:#0f3460;color:#fff;}
+.topbar-btn{padding:7px 14px;background:transparent;border:1.5px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;color:#555;transition:all .2s;font-weight:600;display:flex;align-items:center;gap:5px;}
+.topbar-btn:hover{border-color:#0f3460;color:#0f3460;}
+.topbar-btn.add{background:#0f3460;color:#fff;border-color:#0f3460;}
+.topbar-btn.add:hover{background:#e94560;border-color:#e94560;}
+.topbar-btn.settings{background:#f5f5fa;border-color:#dde;}
+.topbar-btn.settings:hover{background:#e8eaf6;border-color:#9fa8da;}
+
+/* SELECTION BAR */
+.sel-bar{background:#0f3460;color:#fff;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:58px;z-index:99;box-shadow:0 2px 8px rgba(15,52,96,.35);}
+.sel-bar.hidden{display:none;}
+.sel-bar-left{font-size:13px;font-weight:500;}
+.sel-bar-left strong{font-size:16px;}
+.sel-bar-right{display:flex;gap:8px;}
+.sel-clear-btn{padding:7px 14px;background:transparent;border:1.5px solid rgba(255,255,255,.35);color:#fff;border-radius:7px;font-size:12px;cursor:pointer;}
+.sel-clear-btn:hover{border-color:#fff;}
+.sel-post-btn{padding:7px 18px;background:#e94560;color:#fff;border:none;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;}
+.sel-post-btn:hover{background:#c73652;}
+
+/* TOOLBAR */
+.toolbar{padding:18px 24px 0;max-width:1320px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px;align-items:center;}
+.search-wrap{position:relative;flex:1;min-width:220px;max-width:380px;}
+.search-wrap input{width:100%;padding:9px 14px 9px 36px;border:1.5px solid #e0e0ee;border-radius:9px;font-size:13px;background:#fff;outline:none;transition:border .2s;}
+.search-wrap input:focus{border-color:#0f3460;}
+.search-icon{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;color:#aaa;}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:6px;}
+.tag{padding:6px 13px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid #dde;background:#fff;cursor:pointer;transition:all .2s;color:#555;}
+.tag.active{background:#0f3460;color:#fff;border-color:#0f3460;}
+.tag:hover:not(.active){border-color:#0f3460;color:#0f3460;}
+
+/* MAIN */
+.main{padding:16px 24px 32px;max-width:1320px;margin:0 auto;}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.section-title{font-size:15px;font-weight:700;color:#444;}
+.result-count{font-size:12px;color:#999;}
+.empty-state{text-align:center;padding:60px 20px;color:#aaa;}
+.empty-state .e-icon{font-size:48px;margin-bottom:12px;}
+
+/* GRID & CARDS */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:18px;}
+.list{display:flex;flex-direction:column;gap:10px;}
+
+.card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06);transition:transform .2s,box-shadow .2s;position:relative;}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.11);}
+.card.selected{outline:3px solid #0f3460;box-shadow:0 0 0 5px rgba(15,52,96,.1);}
+.user-badge{position:absolute;top:9px;left:9px;z-index:5;background:rgba(233,69,96,.9);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;}
+
+.thumb-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;}
+.thumb-grad{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:rgba(255,255,255,.75);}
+.thumb-yt{width:100%;height:100%;object-fit:cover;display:block;}
+.thumb-duration{position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.75);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;}
+.play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0);transition:background .2s;}
+.thumb-wrap:hover .play-overlay{background:rgba(0,0,0,.28);}
+.play-icon{width:42px;height:42px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;opacity:0;transition:opacity .2s;}
+.thumb-wrap:hover .play-icon{opacity:1;}
+
+.card-body{padding:12px 14px;}
+.card-title{font-size:13px;font-weight:700;line-height:1.4;margin-bottom:3px;}
+.card-channel{font-size:11px;color:#888;margin-bottom:6px;}
+.cat-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-bottom:7px;}
+/* card footer: views on left, checkbox+post on right */
+.card-footer{display:flex;align-items:center;justify-content:space-between;}
+.card-views{font-size:11px;color:#bbb;}
+.card-actions{display:flex;align-items:center;gap:7px;}
+.card-cb{width:16px;height:16px;cursor:pointer;accent-color:#0f3460;flex-shrink:0;}
+.post-btn{padding:5px 13px;background:#0f3460;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:background .2s;}
+.post-btn:hover{background:#e94560;}
+.post-btn.sent{background:#27ae60;cursor:default;}
+
+/* LIST */
+.list-item{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);display:flex;align-items:center;transition:transform .2s;}
+.list-item:hover{transform:translateX(3px);}
+.list-item.selected{outline:2.5px solid #0f3460;}
+.list-thumb{width:148px;min-width:148px;aspect-ratio:16/9;overflow:hidden;position:relative;flex-shrink:0;}
+.list-body{padding:11px 14px;flex:1;min-width:0;}
+.list-title{font-size:13px;font-weight:700;margin-bottom:3px;}
+.list-channel{font-size:11px;color:#888;margin-bottom:3px;}
+.list-desc{font-size:11px;color:#aaa;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+/* list actions: views on top, then checkbox+post together */
+.list-actions{padding:12px 14px;display:flex;flex-direction:column;align-items:flex-end;gap:7px;min-width:110px;flex-shrink:0;}
+.list-views{font-size:11px;color:#bbb;}
+.list-action-row{display:flex;align-items:center;gap:7px;}
+.list-cb{width:16px;height:16px;cursor:pointer;accent-color:#0f3460;}
+
+/* CATEGORY COLORS */
+.cat-software{background:#e8f4ff;color:#1565c0;}
+.cat-gps{background:#e8ffe8;color:#1b5e20;}
+.cat-safety{background:#fff3e0;color:#e65100;}
+.cat-maintenance{background:#fce4ec;color:#880e4f;}
+.cat-fuel{background:#f3e5f5;color:#4a148c;}
+.cat-compliance{background:#e0f2f1;color:#004d40;}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;padding:16px;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:#fff;border-radius:16px;width:540px;max-width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(0,0,0,.22);transform:translateY(20px);transition:transform .25s;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-head{padding:18px 22px 14px;border-bottom:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;}
+.modal-head h2{font-size:16px;font-weight:800;color:#1a1a2e;}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:#bbb;padding:2px 6px;border-radius:4px;line-height:1;}
+.modal-close:hover{color:#e94560;}
+.modal-body{padding:18px 22px;overflow-y:auto;flex:1;}
+.modal-foot{padding:14px 22px;border-top:1px solid #f0f0f0;display:flex;gap:8px;justify-content:flex-end;}
+.modal-cancel{padding:9px 18px;background:#f0f0f5;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;color:#555;}
+.modal-cancel:hover{background:#e0e0e8;}
+.modal-confirm{padding:9px 20px;background:#0f3460;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:background .2s;}
+.modal-confirm:hover:not(:disabled){background:#e94560;}
+.modal-confirm:disabled{background:#ccc;cursor:default;}
+.modal-confirm.done{background:#27ae60;}
+
+/* POST MODAL */
+.modal-intro{font-size:13px;color:#666;margin-bottom:14px;}
+.modal-video-item{display:flex;gap:11px;align-items:flex-start;padding:10px;background:#f7f8fc;border-radius:9px;margin-bottom:9px;}
+.modal-video-item:last-child{margin-bottom:0;}
+.modal-mini-thumb{width:84px;min-width:84px;aspect-ratio:16/9;border-radius:6px;overflow:hidden;flex-shrink:0;}
+.modal-mini-thumb .thumb-grad{font-size:9px;}
+.modal-mini-thumb img{width:100%;height:100%;object-fit:cover;}
+.modal-video-info{flex:1;min-width:0;}
+.modal-video-title{font-size:12px;font-weight:700;margin-bottom:3px;line-height:1.3;}
+.modal-video-ch{font-size:11px;color:#888;margin-bottom:5px;}
+.modal-video-link{font-size:11px;color:#0f3460;word-break:break-all;text-decoration:none;}
+.modal-video-link:hover{text-decoration:underline;}
+
+/* ADD VIDEO MODAL */
+.add-form .f-label{margin-top:14px;}
+.add-form .f-label:first-child{margin-top:0;}
+.add-form input,.add-form select{width:100%;padding:9px 12px;border:1.5px solid #e0e0ee;border-radius:8px;font-size:13px;outline:none;transition:border .2s;margin-bottom:0;}
+.add-form input:focus,.add-form select:focus{border-color:#0f3460;}
+.yt-preview{margin-top:10px;display:none;border-radius:9px;overflow:hidden;aspect-ratio:16/9;background:#1a1a2e;position:relative;}
+.yt-preview img{width:100%;height:100%;object-fit:cover;}
+.yt-preview-label{position:absolute;top:8px;left:8px;background:rgba(233,69,96,.9);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;}
+
+/* SETTINGS MODAL */
+.settings-section{margin-bottom:24px;}
+.settings-section:last-child{margin-bottom:0;}
+.settings-section-title{font-size:13px;font-weight:800;color:#0f3460;text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #f0f0f8;}
+.settings-row{display:flex;gap:10px;align-items:flex-end;margin-bottom:10px;}
+.settings-row .f-group{flex:1;}
+.settings-row .f-group .f-label{margin-bottom:5px;}
+.settings-row .f-group input{width:100%;padding:9px 12px;border:1.5px solid #e0e0ee;border-radius:8px;font-size:13px;outline:none;transition:border .2s;}
+.settings-row .f-group input:focus{border-color:#0f3460;}
+.settings-status{display:flex;align-items:center;gap:6px;padding:10px 14px;border-radius:8px;font-size:12px;font-weight:600;margin-top:10px;}
+.settings-status.ok{background:#e8f5e9;color:#1b5e20;}
+.settings-status.warn{background:#fff8e1;color:#f57f17;}
+.member-list{display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:160px;overflow-y:auto;}
+.member-item{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;background:#f7f8fc;border-radius:8px;font-size:13px;}
+.member-item-left{display:flex;align-items:center;gap:8px;}
+.member-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0f3460,#e94560);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;}
+.member-name{font-weight:600;color:#1a1a2e;}
+.member-handle{font-size:11px;color:#888;}
+.member-remove{background:none;border:none;color:#ccc;font-size:16px;cursor:pointer;padding:2px 4px;border-radius:4px;}
+.member-remove:hover{color:#e94560;}
+.add-member-row{display:flex;gap:8px;align-items:center;}
+.add-member-row input{flex:1;padding:9px 12px;border:1.5px solid #e0e0ee;border-radius:8px;font-size:13px;outline:none;transition:border .2s;}
+.add-member-row input:focus{border-color:#0f3460;}
+.add-member-btn{padding:9px 16px;background:#0f3460;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.add-member-btn:hover{background:#e94560;}
+.settings-save-note{font-size:11px;color:#aaa;margin-top:8px;}
+
+/* TELEGRAM GROUPS */
+.tg-group-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.tg-group-item{background:#f7f8fc;border-radius:9px;padding:11px 13px;border:1.5px solid #e8e8f4;}
+.tg-group-item-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.tg-group-name{font-size:13px;font-weight:700;color:#1a1a2e;display:flex;align-items:center;gap:6px;}
+.tg-group-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:8px;background:#e8f4ff;color:#1565c0;}
+.tg-group-badge.default{background:#e8f5e9;color:#1b5e20;}
+.tg-group-actions{display:flex;gap:5px;}
+.tg-group-btn{padding:4px 9px;border-radius:6px;font-size:11px;font-weight:600;border:none;cursor:pointer;transition:all .2s;}
+.tg-group-btn.set-default{background:#e8f4ff;color:#1565c0;}
+.tg-group-btn.set-default:hover{background:#bbdefb;color:#0d47a1;}
+.tg-group-btn.remove{background:#fce4ec;color:#c62828;}
+.tg-group-btn.remove:hover{background:#ef9a9a;color:#b71c1c;}
+.tg-group-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.tg-group-fields .f-group{display:flex;flex-direction:column;gap:4px;}
+.tg-group-fields .f-label{font-size:10px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;}
+.tg-group-fields input{padding:7px 10px;border:1.5px solid #e0e0ee;border-radius:7px;font-size:12px;outline:none;width:100%;transition:border .2s;}
+.tg-group-fields input:focus{border-color:#0f3460;}
+.tg-group-status{font-size:11px;margin-top:6px;padding:5px 9px;border-radius:6px;font-weight:600;}
+.tg-group-status.ok{background:#e8f5e9;color:#1b5e20;}
+.tg-group-status.warn{background:#fff8e1;color:#f57f17;}
+.add-tg-group-row{background:#f0f2f8;border-radius:9px;padding:13px;border:1.5px dashed #d0d4e8;margin-top:8px;}
+.add-tg-group-title{font-size:12px;font-weight:700;color:#555;margin-bottom:10px;}
+.add-tg-group-fields{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px;}
+.add-tg-group-fields input{padding:8px 10px;border:1.5px solid #e0e0ee;border-radius:7px;font-size:12px;outline:none;width:100%;transition:border .2s;}
+.add-tg-group-fields input:focus{border-color:#0f3460;}
+
+/* POST MODAL GROUP SELECTOR */
+.post-group-selector{margin-bottom:14px;padding:12px 14px;background:#f0f2f8;border-radius:9px;border:1.5px solid #e0e4f0;}
+.post-group-selector label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:6px;}
+.post-group-selector select{width:100%;padding:8px 11px;border:1.5px solid #d0d4e8;border-radius:7px;font-size:13px;font-weight:600;color:#1a1a2e;background:#fff;outline:none;cursor:pointer;}
+.post-group-selector select:focus{border-color:#0f3460;}
+.post-group-no-groups{font-size:12px;color:#e94560;font-weight:600;margin-top:6px;padding:8px 12px;background:#fce4ec;border-radius:7px;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">Fleet<span>Vid</span></div>
+    <div class="login-sub">Fleet Management Video Portal</div>
+    <label class="f-label">Username</label>
+    <input class="f-input" type="text" id="usr" placeholder="Enter username"/>
+    <label class="f-label">Password</label>
+    <input class="f-input" type="password" id="pwd" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="login-err" id="login-err">❌ Invalid credentials</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">Fleet<span>Vid</span></div>
+    <div class="topbar-right">
+      <button class="topbar-btn add" onclick="openAddModal()">＋ Add Video</button>
+      <div class="view-toggle">
+        <button class="view-btn active" id="btn-card" onclick="setView('card')">⊞</button>
+        <button class="view-btn" id="btn-list" onclick="setView('list')">☰</button>
+      </div>
+      <button class="topbar-btn settings" onclick="openModal('settings-modal')">⚙️ Settings</button>
+      <button class="topbar-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="sel-bar hidden" id="sel-bar">
+    <div class="sel-bar-left"><strong id="sel-count">0</strong> video(s) selected</div>
+    <div class="sel-bar-right">
+      <button class="sel-clear-btn" onclick="clearAll()">✕ Clear</button>
+      <button class="sel-post-btn" onclick="openPostModal()">✈ Post Selected</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Search videos…" oninput="renderVideos()"/>
+    </div>
+    <div class="tags-wrap" id="tag-list"></div>
+  </div>
+
+  <div class="main">
+    <div class="section-header">
+      <span class="section-title" id="section-title">All Videos</span>
+      <span class="result-count" id="result-count"></span>
+    </div>
+    <div id="video-container"></div>
+  </div>
+</div>
+
+<!-- POST MODAL -->
+<div class="modal-overlay" id="post-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="post-modal-title">📤 Post to Telegram</h2>
+      <button class="modal-close" onclick="closeModal('post-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="post-group-selector" id="post-group-selector-wrap">
+        <label>📡 Post to Telegram Group</label>
+        <select id="post-group-select"></select>
+        <div class="post-group-no-groups" id="post-no-groups-msg" style="display:none">⚠️ No Telegram groups configured. Please add a group in Settings first.</div>
+      </div>
+      <div class="modal-intro" id="post-modal-intro"></div>
+      <div id="post-modal-items"></div>
+    </div>
+    <div id="post-error-msg" style="display:none;margin:0 22px 10px;padding:9px 13px;background:#fce4ec;color:#c62828;border-radius:8px;font-size:12px;font-weight:600;"></div>
+    <div class="modal-foot">
+      <button class="modal-cancel" onclick="closeModal('post-modal')">Cancel</button>
+      <button class="modal-confirm" id="post-confirm-btn" onclick="confirmPost()">✈ Confirm & Post</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD VIDEO MODAL -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-head">
+      <h2>➕ Add Video</h2>
+      <button class="modal-close" onclick="closeModal('add-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="add-form">
+        <label class="f-label">YouTube URL *</label>
+        <input type="text" id="add-url" placeholder="https://www.youtube.com/watch?v=…" oninput="previewYT()"/>
+        <div class="yt-preview" id="yt-preview">
+          <img id="yt-preview-img" src="" alt=""/>
+          <span class="yt-preview-label">✓ YouTube Thumbnail</span>
+        </div>
+        <label class="f-label" style="margin-top:12px">Title *</label>
+        <input type="text" id="add-title" placeholder="Video title"/>
+        <label class="f-label" style="margin-top:10px">Channel Name</label>
+        <input type="text" id="add-channel" placeholder="Channel name"/>
+        <label class="f-label" style="margin-top:10px">Category</label>
+        <select id="add-cat">
+          <option value="software">Fleet Software</option>
+          <option value="gps">GPS & Tracking</option>
+          <option value="safety">Driver Safety</option>
+          <option value="maintenance">Maintenance</option>
+          <option value="fuel">Fuel Management</option>
+          <option value="compliance">Compliance</option>
+        </select>
+        <label class="f-label" style="margin-top:10px">Duration (e.g. 5:30)</label>
+        <input type="text" id="add-dur" placeholder="0:00"/>
+        <label class="f-label" style="margin-top:10px">Views</label>
+        <input type="text" id="add-views" placeholder="e.g. 12K views"/>
+        <label class="f-label" style="margin-top:10px">Description</label>
+        <input type="text" id="add-desc" placeholder="Short description"/>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="modal-cancel" onclick="closeModal('add-modal')">Cancel</button>
+      <button class="modal-confirm" onclick="addVideo()">Add Video</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal" style="width:580px">
+    <div class="modal-head">
+      <h2>⚙️ Settings</h2>
+      <button class="modal-close" onclick="closeModal('settings-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- TELEGRAM GROUPS CONFIG -->
+      <div class="settings-section">
+        <div class="settings-section-title">📬 Telegram Groups</div>
+        <div class="tg-group-list" id="tg-group-list"></div>
+        <div class="add-tg-group-row">
+          <div class="add-tg-group-title">➕ Add New Group</div>
+          <div class="add-tg-group-fields">
+            <input type="text" id="ng-name" placeholder="Group Name (e.g. Fleet Team)"/>
+            <input type="text" id="ng-token" placeholder="Bot Token"/>
+            <input type="text" id="ng-chatid" placeholder="Chat ID (e.g. -1001234…)"/>
+          </div>
+          <button class="add-member-btn" onclick="addTgGroup()" style="width:100%;margin-top:0">＋ Add Group</button>
+        </div>
+        <p class="settings-save-note" style="margin-top:8px">Create a bot via @BotFather and get your Chat ID via @userinfobot. The default group is used when posting.</p>
+      </div>
+
+      <!-- TELEGRAM MEMBERS -->
+      <div class="settings-section">
+        <div class="settings-section-title">👥 Telegram Group Members</div>
+        <div class="member-list" id="member-list"></div>
+        <div class="add-member-row">
+          <input type="text" id="new-member-name" placeholder="Name (e.g. John Doe)"/>
+          <input type="text" id="new-member-handle" placeholder="@username" style="max-width:160px"/>
+          <button class="add-member-btn" onclick="addMember()">＋ Add</button>
+        </div>
+        <p class="settings-save-note" style="margin-top:8px">Members are for reference — Telegram group posting is handled via the Bot.</p>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="modal-cancel" onclick="closeModal('settings-modal')">Cancel</button>
+      <button class="modal-confirm" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CREDS = {username:'admin',password:'fleet123'};
+
+// ── STATE ──────────────────────────────────────────────────────────
+let tgGroups = [
+  {id:1, name:'Fleet Operations', botToken:'', chatId:'', isDefault:true},
+];
+let nextGroupId = 2;
+let members = [
+  {id:1, name:'Alex Johnson', handle:'@alexj'},
+  {id:2, name:'Priya Mehta',  handle:'@priyam'},
+];
+let nextMemberId = 3;
+
+const CATEGORIES = [
+  {key:'all',       label:'All'},
+  {key:'software',  label:'Fleet Software'},
+  {key:'gps',       label:'GPS & Tracking'},
+  {key:'safety',    label:'Driver Safety'},
+  {key:'maintenance',label:'Maintenance'},
+  {key:'fuel',      label:'Fuel Management'},
+  {key:'compliance',label:'Compliance'},
+];
+const GRADIENTS = {
+  software:   ['#1565c0','#42a5f5'],
+  gps:        ['#1b5e20','#66bb6a'],
+  safety:     ['#e65100','#ffa726'],
+  maintenance:['#880e4f','#f06292'],
+  fuel:       ['#4a148c','#ab47bc'],
+  compliance: ['#004d40','#4db6ac'],
+};
+const ICONS = {software:'🖥️',gps:'📡',safety:'🛡️',maintenance:'🔧',fuel:'⛽',compliance:'📋'};
+
+let videos = [
+  {id:1,ytId:null,title:'What Is Fleet Management Software?',channel:'Fleetio',cat:'software',duration:'4:12',views:'94K views',desc:'A concise overview of how modern fleet management software streamlines operations, maintenance, and compliance.',userAdded:false},
+  {id:2,ytId:null,title:'GPS Vehicle Tracking Explained',channel:'Geotab',cat:'gps',duration:'3:55',views:'67K views',desc:'How real-time GPS telematics gives fleet managers full visibility over vehicle location, speed, and trip history.',userAdded:false},
+  {id:3,ytId:null,title:'Reducing Fleet Fuel Costs with Telematics',channel:'Motive',cat:'fuel',duration:'6:01',views:'52K views',desc:'Proven strategies using telematics data to cut idle time, optimize routes, and reduce overall fuel expenses.',userAdded:false},
+  {id:4,ytId:null,title:'Driver Safety Coaching with Dash Cams',channel:'Lytx',cat:'safety',duration:'5:18',views:'44K views',desc:'How AI-powered dash cams identify risky driving events and enable proactive coaching to improve fleet safety scores.',userAdded:false},
+  {id:5,ytId:null,title:'Preventive Maintenance Scheduling for Fleets',channel:'RTA Fleet',cat:'maintenance',duration:'7:22',views:'31K views',desc:'Best practices for setting up preventive maintenance schedules that reduce vehicle downtime and extend asset lifespan.',userAdded:false},
+  {id:6,ytId:null,title:'ELD Compliance: What Fleet Managers Must Know',channel:'Verizon Connect',cat:'compliance',duration:'5:47',views:'38K views',desc:'A complete guide to ELD mandates, FMCSA rules, and how to stay audit-ready.',userAdded:false},
+  {id:7,ytId:null,title:'Fleet Route Optimization Strategies',channel:'Samsara',cat:'gps',duration:'4:33',views:'29K views',desc:'Using AI-powered dispatch and route planning tools to reduce mileage, improve delivery times, and save costs.',userAdded:false},
+  {id:8,ytId:null,title:'Digital DVIR & Vehicle Inspection Best Practices',channel:'Fleetio',cat:'compliance',duration:'4:58',views:'22K views',desc:'How to implement digital Driver Vehicle Inspection Reports to catch issues early and stay DOT compliant.',userAdded:false},
+];
+let nextId = 9;
+let currentView = 'card';
+let activeTag   = 'all';
+let selected    = new Set();
+let postedIds   = new Set();
+let postTarget  = [];
+
+// ── AUTH ──────────────────────────────────────────────────────────
+function doLogin(){
+  const u=document.getElementById('usr').value.trim();
+  const p=document.getElementById('pwd').value;
+  if(u===CREDS.username&&p===CREDS.password){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    buildTags(); renderVideos(); renderMemberList();
+  } else {
+    document.getElementById('login-err').style.display='block';
+  }
+}
+function doLogout(){
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('usr').value='';
+  document.getElementById('pwd').value='';
+  document.getElementById('login-err').style.display='none';
+  selected.clear(); updateSelBar();
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────────
+function saveSettings(){
+  // Save edits to each group's fields
+  tgGroups.forEach(g=>{
+    const t = document.getElementById('g-token-'+g.id);
+    const c = document.getElementById('g-chatid-'+g.id);
+    if(t) g.botToken = t.value.trim();
+    if(c) g.chatId   = c.value.trim();
+  });
+  renderTgGroupList();
+  closeModal('settings-modal');
+}
+function renderTgGroupList(){
+  const wrap = document.getElementById('tg-group-list');
+  if(!wrap) return;
+  if(!tgGroups.length){
+    wrap.innerHTML='<div style="font-size:12px;color:#bbb;padding:6px 0">No groups yet. Add one below.</div>';
+    return;
+  }
+  wrap.innerHTML = tgGroups.map(g=>{
+    const configured = g.botToken && g.chatId;
+    return `<div class="tg-group-item">
+      <div class="tg-group-item-head">
+        <div class="tg-group-name">
+          📡 ${g.name}
+          ${g.isDefault?'<span class="tg-group-badge default">✓ Default</span>':'<span class="tg-group-badge">Group</span>'}
+        </div>
+        <div class="tg-group-actions">
+          ${!g.isDefault?`<button class="tg-group-btn set-default" onclick="setDefaultGroup(${g.id})">Set Default</button>`:''}
+          ${tgGroups.length>1?`<button class="tg-group-btn remove" onclick="removeTgGroup(${g.id})">✕ Remove</button>`:''}
+        </div>
+      </div>
+      <div class="tg-group-fields">
+        <div class="f-group">
+          <label class="f-label">Bot Token</label>
+          <input type="text" id="g-token-${g.id}" value="${g.botToken}" placeholder="Bot Token"/>
+        </div>
+        <div class="f-group">
+          <label class="f-label">Chat ID</label>
+          <input type="text" id="g-chatid-${g.id}" value="${g.chatId}" placeholder="-1001234567890"/>
+        </div>
+      </div>
+      <div class="tg-group-status ${configured?'ok':'warn'}">
+        ${configured?'✅ Configured':'⚠️ Token & Chat ID required'}
+      </div>
+    </div>`;
+  }).join('');
+}
+function addTgGroup(){
+  const name  = document.getElementById('ng-name').value.trim();
+  const token = document.getElementById('ng-token').value.trim();
+  const chat  = document.getElementById('ng-chatid').value.trim();
+  if(!name){alert('Group name is required.');return;}
+  tgGroups.push({id:nextGroupId++, name, botToken:token, chatId:chat, isDefault:false});
+  document.getElementById('ng-name').value='';
+  document.getElementById('ng-token').value='';
+  document.getElementById('ng-chatid').value='';
+  renderTgGroupList();
+}
+function removeTgGroup(id){
+  const wasDefault = tgGroups.find(g=>g.id===id)?.isDefault;
+  tgGroups = tgGroups.filter(g=>g.id!==id);
+  if(wasDefault && tgGroups.length) tgGroups[0].isDefault = true;
+  renderTgGroupList();
+}
+function setDefaultGroup(id){
+  tgGroups.forEach(g=>g.isDefault = g.id===id);
+  renderTgGroupList();
+}
+
+// ── MEMBERS ────────────────────────────────────────────────────────
+function renderMemberList(){
+  const wrap = document.getElementById('member-list');
+  if(members.length===0){
+    wrap.innerHTML='<div style="font-size:12px;color:#bbb;padding:8px 0;">No members added yet.</div>';
+    return;
+  }
+  wrap.innerHTML = members.map(m=>`
+    <div class="member-item">
+      <div class="member-item-left">
+        <div class="member-avatar">${m.name.charAt(0).toUpperCase()}</div>
+        <div>
+          <div class="member-name">${m.name}</div>
+          <div class="member-handle">${m.handle}</div>
+        </div>
+      </div>
+      <button class="member-remove" onclick="removeMember(${m.id})" title="Remove">✕</button>
+    </div>`).join('');
+}
+function addMember(){
+  const name   = document.getElementById('new-member-name').value.trim();
+  const handle = document.getElementById('new-member-handle').value.trim();
+  if(!name) return;
+  const h = handle.startsWith('@')?handle:'@'+handle;
+  members.push({id:nextMemberId++, name, handle:h});
+  document.getElementById('new-member-name').value='';
+  document.getElementById('new-member-handle').value='';
+  renderMemberList();
+}
+function removeMember(id){
+  members = members.filter(m=>m.id!==id);
+  renderMemberList();
+}
+
+// ── TAGS ──────────────────────────────────────────────────────────
+function buildTags(){
+  document.getElementById('tag-list').innerHTML = CATEGORIES.map(c=>`
+    <button class="tag ${c.key==='all'?'active':''}" data-cat="${c.key}" onclick="setTag('${c.key}')">${c.label}</button>`).join('');
+}
+function setTag(key){
+  activeTag=key;
+  document.querySelectorAll('.tag').forEach(t=>t.classList.toggle('active',t.dataset.cat===key));
+  renderVideos();
+}
+
+// ── VIEW ──────────────────────────────────────────────────────────
+function setView(v){
+  currentView=v;
+  document.getElementById('btn-card').classList.toggle('active',v==='card');
+  document.getElementById('btn-list').classList.toggle('active',v==='list');
+  renderVideos();
+}
+
+// ── SELECTION ─────────────────────────────────────────────────────
+function toggleSel(id,e){
+  e&&e.stopPropagation();
+  selected.has(id)?selected.delete(id):selected.add(id);
+  const el=document.querySelector(`[data-id="${id}"]`);
+  if(el) el.classList.toggle('selected',selected.has(id));
+  updateSelBar();
+}
+function clearAll(){
+  selected.clear();
+  document.querySelectorAll('.selected').forEach(el=>el.classList.remove('selected'));
+  document.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
+  updateSelBar();
+}
+function updateSelBar(){
+  document.getElementById('sel-bar').classList.toggle('hidden',selected.size===0);
+  document.getElementById('sel-count').textContent=selected.size;
+}
+
+// ── FILTER ────────────────────────────────────────────────────────
+function getFiltered(){
+  const q=(document.getElementById('search-input')?.value||'').toLowerCase();
+  return videos.filter(v=>{
+    const catOk=activeTag==='all'||v.cat===activeTag;
+    const qOk=!q||v.title.toLowerCase().includes(q)||v.channel.toLowerCase().includes(q)||v.desc.toLowerCase().includes(q);
+    return catOk&&qOk;
+  });
+}
+
+// ── THUMBNAIL ─────────────────────────────────────────────────────
+function thumbHtml(v){
+  const g=GRADIENTS[v.cat]||['#333','#666'];
+  if(v.ytId){
+    return `<img class="thumb-yt" src="https://img.youtube.com/vi/${v.ytId}/mqdefault.jpg" alt="${v.title}" loading="lazy"
+      onerror="this.style.display='none';this.nextSibling.style.display='flex'"/>
+      <div class="thumb-grad" style="display:none;background:linear-gradient(135deg,${g[0]},${g[1]})">
+        <span style="font-size:24px">${ICONS[v.cat]||'📹'}</span><span>${v.channel}</span></div>`;
+  }
+  return `<div class="thumb-grad" style="background:linear-gradient(135deg,${g[0]},${g[1]})">
+    <span style="font-size:28px">${ICONS[v.cat]||'📹'}</span><span>${v.channel}</span></div>`;
+}
+function ytLink(v){
+  return v.ytId?`https://www.youtube.com/watch?v=${v.ytId}`:`https://www.youtube.com/results?search_query=${encodeURIComponent(v.title)}`;
+}
+function catBadge(cat){
+  const c=CATEGORIES.find(x=>x.key===cat)||{label:cat};
+  return `<span class="cat-badge cat-${cat}">${c.label}</span>`;
+}
+
+// ── RENDER ────────────────────────────────────────────────────────
+function renderVideos(){
+  const filtered=getFiltered();
+  const c=document.getElementById('video-container');
+  const label=activeTag==='all'?'All Videos':(CATEGORIES.find(x=>x.key===activeTag)?.label||activeTag);
+  document.getElementById('section-title').textContent=label;
+  document.getElementById('result-count').textContent=`${filtered.length} video${filtered.length!==1?'s':''}`;
+
+  if(!filtered.length){
+    c.className='';
+    c.innerHTML=`<div class="empty-state"><div class="e-icon">🔍</div><p>No videos match your search.<br>Try a different keyword or category.</p></div>`;
+    return;
+  }
+
+  if(currentView==='card'){
+    c.className='grid';
+    c.innerHTML=filtered.map(v=>`
+      <div class="card ${selected.has(v.id)?'selected':''}" data-id="${v.id}">
+        ${v.userAdded?'<span class="user-badge">MY VIDEO</span>':''}
+        <a href="${ytLink(v)}" target="_blank">
+          <div class="thumb-wrap">
+            ${thumbHtml(v)}
+            <div class="play-overlay"><div class="play-icon">▶</div></div>
+            <span class="thumb-duration">${v.duration}</span>
+          </div>
+        </a>
+        <div class="card-body">
+          ${catBadge(v.cat)}
+          <div class="card-title">${v.title}</div>
+          <div class="card-channel">${v.channel}</div>
+          <div class="card-footer">
+            <span class="card-views">${v.views}</span>
+            <div class="card-actions">
+              <input type="checkbox" class="card-cb" ${selected.has(v.id)?'checked':''} onchange="toggleSel(${v.id},event)" title="Select"/>
+              <button class="post-btn ${postedIds.has(v.id)?'sent':''}" onclick="openPostModal([${v.id}])">
+                ${postedIds.has(v.id)?'✓ Sent':'✈ Post'}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>`).join('');
+  } else {
+    c.className='list';
+    c.innerHTML=filtered.map(v=>`
+      <div class="list-item ${selected.has(v.id)?'selected':''}" data-id="${v.id}">
+        <a href="${ytLink(v)}" target="_blank" style="display:contents">
+          <div class="list-thumb">
+            <div class="thumb-wrap" style="height:100%">
+              ${thumbHtml(v)}
+              <span class="thumb-duration">${v.duration}</span>
+            </div>
+          </div>
+        </a>
+        <div class="list-body">
+          ${catBadge(v.cat)}
+          <div class="list-title">${v.title}${v.userAdded?' <em style="color:#e94560;font-style:normal;font-size:10px;font-weight:700">MY VIDEO</em>':''}</div>
+          <div class="list-channel">${v.channel}</div>
+          <div class="list-desc">${v.desc}</div>
+        </div>
+        <div class="list-actions">
+          <span class="list-views">${v.views}</span>
+          <div class="list-action-row">
+            <input type="checkbox" class="list-cb" ${selected.has(v.id)?'checked':''} onchange="toggleSel(${v.id},event)" title="Select"/>
+            <button class="post-btn ${postedIds.has(v.id)?'sent':''}" onclick="openPostModal([${v.id}])">
+              ${postedIds.has(v.id)?'✓ Sent':'✈ Post'}
+            </button>
+          </div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+// ── POST MODAL ────────────────────────────────────────────────────
+function populateGroupDropdown(){
+  const sel = document.getElementById('post-group-select');
+  const msg = document.getElementById('post-no-groups-msg');
+  const btn = document.getElementById('post-confirm-btn');
+  sel.innerHTML = '';
+  if(!tgGroups.length){
+    sel.style.display='none'; msg.style.display='block'; btn.disabled=true; return;
+  }
+  sel.style.display='block'; msg.style.display='none'; btn.disabled=false;
+  tgGroups.forEach(g=>{
+    const opt = document.createElement('option');
+    opt.value = g.id;
+    opt.textContent = g.name + (g.isDefault?' (Default)':'')+(!g.botToken||!g.chatId?' ⚠ not configured':'');
+    if(g.isDefault) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+function openPostModal(ids){
+  postTarget=ids||Array.from(selected);
+  if(!postTarget.length) return;
+  const items=postTarget.map(id=>videos.find(v=>v.id===id)).filter(Boolean);
+  const multi=items.length>1;
+  document.getElementById('post-modal-title').textContent=multi?`📤 Post ${items.length} Videos to Telegram`:'📤 Post to Telegram';
+  document.getElementById('post-modal-intro').textContent=multi
+    ?`The following ${items.length} video links will be posted to the selected Telegram group:`
+    :'The following video link will be posted to the selected Telegram group:';
+  document.getElementById('post-modal-items').innerHTML=items.map(v=>`
+    <div class="modal-video-item">
+      <div class="modal-mini-thumb">
+        <div class="thumb-wrap" style="height:100%">${thumbHtml(v)}</div>
+      </div>
+      <div class="modal-video-info">
+        <div class="modal-video-title">${v.title}</div>
+        <div class="modal-video-ch">${v.channel} · ${v.views}</div>
+        <a class="modal-video-link" href="${ytLink(v)}" target="_blank">${ytLink(v)}</a>
+      </div>
+    </div>`).join('');
+  populateGroupDropdown();
+  const btn=document.getElementById('post-confirm-btn');
+  btn.className='modal-confirm'; btn.textContent='✈ Confirm & Post'; btn.disabled=false;
+  const errEl=document.getElementById('post-error-msg'); if(errEl){errEl.style.display='none';errEl.textContent='';}
+  openModal('post-modal');
+}
+async function confirmPost(){
+  const sel = document.getElementById('post-group-select');
+  const groupId = parseInt(sel.value);
+  const group = tgGroups.find(g=>g.id===groupId);
+  const btn = document.getElementById('post-confirm-btn');
+  btn.disabled=true; btn.textContent='Posting…';
+
+  const items = postTarget.map(id=>videos.find(v=>v.id===id)).filter(Boolean);
+
+  // If group has no credentials, run in demo mode
+  if(!group || !group.botToken || !group.chatId){
+    await new Promise(r=>setTimeout(r,800));
+    postTarget.forEach(id=>postedIds.add(id));
+    selected.clear(); updateSelBar(); renderVideos();
+    btn.className='modal-confirm done';
+    btn.textContent='✓ Posted (Demo Mode)';
+    setTimeout(()=>closeModal('post-modal'),1500);
+    return;
+  }
+
+  // Build one message per video and send via Telegram Bot API
+  let allOk = true;
+  let failReason = '';
+  for(const v of items){
+    const link = ytLink(v);
+    const text = `📹 *${v.title}*\n🏢 ${v.channel} · ${v.views}\n\n${link}`;
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${group.botToken}/sendMessage`, {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          chat_id: group.chatId,
+          text,
+          parse_mode: 'Markdown',
+          disable_web_page_preview: false
+        })
+      });
+      const data = await res.json();
+      if(!data.ok){
+        allOk = false;
+        failReason = data.description || 'Unknown error';
+        break;
+      }
+    } catch(err){
+      allOk = false;
+      failReason = 'Network error — check your connection.';
+      break;
+    }
+  }
+
+  if(allOk){
+    postTarget.forEach(id=>postedIds.add(id));
+    selected.clear(); updateSelBar(); renderVideos();
+    btn.className='modal-confirm done';
+    btn.textContent = `✓ Posted to ${group.name}!`;
+    setTimeout(()=>closeModal('post-modal'),1500);
+  } else {
+    btn.disabled=false;
+    btn.textContent='✈ Retry';
+    btn.className='modal-confirm';
+    const errEl = document.getElementById('post-error-msg');
+    if(errEl){ errEl.textContent='❌ Failed: '+failReason; errEl.style.display='block'; }
+  }
+}
+
+// ── ADD VIDEO ─────────────────────────────────────────────────────
+function openAddModal(){
+  ['add-url','add-title','add-channel','add-dur','add-views','add-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('add-cat').value='software';
+  document.getElementById('yt-preview').style.display='none';
+  openModal('add-modal');
+}
+function previewYT(){
+  const id=extractYtId(document.getElementById('add-url').value.trim());
+  const p=document.getElementById('yt-preview');
+  if(id){ document.getElementById('yt-preview-img').src=`https://img.youtube.com/vi/${id}/mqdefault.jpg`; p.style.display='block'; }
+  else p.style.display='none';
+}
+function extractYtId(url){
+  const m=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return m?m[1]:null;
+}
+function addVideo(){
+  const url=document.getElementById('add-url').value.trim();
+  const title=document.getElementById('add-title').value.trim();
+  if(!url||!title){alert('URL and Title are required.');return;}
+  videos.unshift({
+    id:nextId++, ytId:extractYtId(url), title,
+    channel:document.getElementById('add-channel').value.trim()||'Unknown Channel',
+    cat:document.getElementById('add-cat').value,
+    duration:document.getElementById('add-dur').value.trim()||'–',
+    views:document.getElementById('add-views').value.trim()||'–',
+    desc:document.getElementById('add-desc').value.trim()||'',
+    userAdded:true,
+  });
+  closeModal('add-modal');
+  activeTag='all';
+  document.querySelectorAll('.tag').forEach(t=>t.classList.toggle('active',t.dataset.cat==='all'));
+  document.getElementById('search-input').value='';
+  renderVideos();
+}
+
+// ── MODAL HELPERS ─────────────────────────────────────────────────
+function openModal(id){
+  if(id==='settings-modal'){
+    renderTgGroupList();
+    renderMemberList();
+  }
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+</script>
+</body>
+</html>

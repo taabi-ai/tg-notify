@@ -19,6 +19,8 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
 .f-input:focus{border-color:#0f3460;}
 .login-btn{width:100%;padding:12px;background:#0f3460;color:#fff;border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s;}
 .login-btn:hover{background:#e94560;}
+.login-demo-btn{width:100%;padding:10px;margin-top:10px;background:#f0f2f8;color:#0f3460;border:1.5px solid #d4d9ec;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.login-demo-btn:hover{background:#e8edf9;border-color:#0f3460;}
 .login-err{color:#e94560;font-size:12px;margin-top:10px;display:none;}
 
 /* APP */
@@ -80,11 +82,13 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
 .thumb-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;}
 .thumb-grad{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:rgba(255,255,255,.75);}
 .thumb-yt{width:100%;height:100%;object-fit:cover;display:block;}
+.thumb-video{width:100%;height:100%;object-fit:cover;display:block;background:#000;}
 .thumb-duration{position:absolute;bottom:7px;right:7px;background:rgba(0,0,0,.75);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;}
 .play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0);transition:background .2s;}
 .thumb-wrap:hover .play-overlay{background:rgba(0,0,0,.28);}
 .play-icon{width:42px;height:42px;background:rgba(255,255,255,.92);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;opacity:0;transition:opacity .2s;}
 .thumb-wrap:hover .play-icon{opacity:1;}
+.play-toggle{position:absolute;inset:0;border:none;background:transparent;cursor:pointer;z-index:6;}
 
 .card-body{padding:12px 14px;}
 .card-title{font-size:13px;font-weight:700;line-height:1.4;margin-bottom:3px;}
@@ -107,7 +111,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
 .list-body{padding:11px 14px;flex:1;min-width:0;}
 .list-title{font-size:13px;font-weight:700;margin-bottom:3px;}
 .list-channel{font-size:11px;color:#888;margin-bottom:3px;}
-.list-desc{font-size:11px;color:#aaa;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.list-desc{font-size:11px;color:#aaa;line-height:1.5;display:-webkit-box;line-clamp:2;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 /* list actions: views on top, then checkbox+post together */
 .list-actions{padding:12px 14px;display:flex;flex-direction:column;align-items:flex-end;gap:7px;min-width:110px;flex-shrink:0;}
 .list-views{font-size:11px;color:#bbb;}
@@ -121,6 +125,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
 .cat-maintenance{background:#fce4ec;color:#880e4f;}
 .cat-fuel{background:#f3e5f5;color:#4a148c;}
 .cat-compliance{background:#e0f2f1;color:#004d40;}
+.cat-critical{background:#ffebee;color:#b71c1c;}
 
 /* MODALS */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s;padding:16px;}
@@ -161,6 +166,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
 .yt-preview{margin-top:10px;display:none;border-radius:9px;overflow:hidden;aspect-ratio:16/9;background:#1a1a2e;position:relative;}
 .yt-preview img{width:100%;height:100%;object-fit:cover;}
 .yt-preview-label{position:absolute;top:8px;left:8px;background:rgba(233,69,96,.9);color:#fff;font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;}
+.link-preview-text{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#d7dfff;font-size:12px;font-weight:600;padding:12px;text-align:center;}
 
 /* SETTINGS MODAL */
 .settings-section{margin-bottom:24px;}
@@ -222,6 +228,10 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
 .post-group-selector select{width:100%;padding:8px 11px;border:1.5px solid #d0d4e8;border-radius:7px;font-size:13px;font-weight:600;color:#1a1a2e;background:#fff;outline:none;cursor:pointer;}
 .post-group-selector select:focus{border-color:#0f3460;}
 .post-group-no-groups{font-size:12px;color:#e94560;font-weight:600;margin-top:6px;padding:8px 12px;background:#fce4ec;border-radius:7px;}
+.post-group-list{display:flex;flex-direction:column;gap:7px;}
+.post-group-check{display:flex;align-items:center;gap:9px;padding:8px 9px;background:#fff;border:1px solid #dbe0ef;border-radius:7px;font-size:12px;color:#444;}
+.post-group-check input{accent-color:#0f3460;}
+.post-group-check .warn{color:#e65100;font-size:10px;font-weight:700;margin-left:auto;}
 </style>
 </head>
 <body>
@@ -236,6 +246,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
     <label class="f-label">Password</label>
     <input class="f-input" type="password" id="pwd" placeholder="Enter password" onkeydown="if(event.key==='Enter')doLogin()"/>
     <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <button class="login-demo-btn" onclick="fillDemoCreds()">Use Demo Credentials</button>
     <div class="login-err" id="login-err">❌ Invalid credentials</div>
   </div>
 </div>
@@ -289,8 +300,8 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
     </div>
     <div class="modal-body">
       <div class="post-group-selector" id="post-group-selector-wrap">
-        <label>📡 Post to Telegram Group</label>
-        <select id="post-group-select"></select>
+        <label>📡 Post to Telegram Group(s)</label>
+        <div id="post-group-select" class="post-group-list"></div>
         <div class="post-group-no-groups" id="post-no-groups-msg" style="display:none">⚠️ No Telegram groups configured. Please add a group in Settings first.</div>
       </div>
       <div class="modal-intro" id="post-modal-intro"></div>
@@ -313,11 +324,11 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
     </div>
     <div class="modal-body">
       <div class="add-form">
-        <label class="f-label">YouTube URL *</label>
-        <input type="text" id="add-url" placeholder="https://www.youtube.com/watch?v=…" oninput="previewYT()"/>
+        <label class="f-label">Source Link (github.com)</label>
+        <input type="text" id="add-url" placeholder="https://github.com/..." oninput="previewYT()"/>
         <div class="yt-preview" id="yt-preview">
-          <img id="yt-preview-img" src="" alt=""/>
-          <span class="yt-preview-label">✓ YouTube Thumbnail</span>
+          <div class="link-preview-text">GitHub source link detected</div>
+          <span class="yt-preview-label">✓ Valid GitHub Link</span>
         </div>
         <label class="f-label" style="margin-top:12px">Title *</label>
         <input type="text" id="add-title" placeholder="Video title"/>
@@ -331,6 +342,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
           <option value="maintenance">Maintenance</option>
           <option value="fuel">Fuel Management</option>
           <option value="compliance">Compliance</option>
+          <option value="critical">Critical</option>
         </select>
         <label class="f-label" style="margin-top:10px">Duration (e.g. 5:30)</label>
         <input type="text" id="add-dur" placeholder="0:00"/>
@@ -395,534 +407,6 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
   </div>
 </div>
 
-<script>
-const CREDS = {username:'admin',password:'fleet123'};
-
-// ── STATE ──────────────────────────────────────────────────────────
-let tgGroups = [
-  {id:1, name:'Fleet Operations', botToken:'', chatId:'-5274392721', isDefault:true},
-];
-let nextGroupId = 2;
-let members = [
-  {id:1, name:'Alex Johnson', handle:'@alexj'},
-  {id:2, name:'Priya Mehta',  handle:'@priyam'},
-];
-let nextMemberId = 3;
-
-const CATEGORIES = [
-  {key:'all',       label:'All'},
-  {key:'software',  label:'Fleet Software'},
-  {key:'gps',       label:'GPS & Tracking'},
-  {key:'safety',    label:'Driver Safety'},
-  {key:'maintenance',label:'Maintenance'},
-  {key:'fuel',      label:'Fuel Management'},
-  {key:'compliance',label:'Compliance'},
-];
-const GRADIENTS = {
-  software:   ['#1565c0','#42a5f5'],
-  gps:        ['#1b5e20','#66bb6a'],
-  safety:     ['#e65100','#ffa726'],
-  maintenance:['#880e4f','#f06292'],
-  fuel:       ['#4a148c','#ab47bc'],
-  compliance: ['#004d40','#4db6ac'],
-};
-const ICONS = {software:'🖥️',gps:'📡',safety:'🛡️',maintenance:'🔧',fuel:'⛽',compliance:'📋'};
-
-let videos = [
-
-  // ── YouTube videos (real YT IDs) ─────────────────────────────────
-  {id:1,  ytId:'ZL0HGFyX_Ks', title:'What Is Fleet Management Software?',           channel:'Fleetio',        cat:'software',     duration:'2:12', views:'94K views',  desc:'A concise overview of how modern fleet management software streamlines vehicle operations, maintenance scheduling, and compliance.',                                 mp4Url:null, userAdded:false},
-  {id:2,  ytId:'qwMHrn7MDKQ', title:'Geotab GPS Fleet Tracking Overview',            channel:'Geotab',         cat:'gps',          duration:'3:21', views:'67K views',  desc:'How real-time GPS telematics gives fleet managers full visibility over vehicle location, speed, and trip history.',                                                  mp4Url:null, userAdded:false},
-  {id:3,  ytId:'UsFy4SZQNGI', title:'Samsara Fleet Management Platform Demo',        channel:'Samsara',        cat:'software',     duration:'4:47', views:'81K views',  desc:'Full walkthrough of the Samsara dashboard — GPS tracking, driver safety scores, ELD compliance, and maintenance alerts.',                                          mp4Url:null, userAdded:false},
-  {id:4,  ytId:'yoiyFTSVRHI', title:'Driver Safety Coaching with Dash Cams',         channel:'Lytx',           cat:'safety',       duration:'5:18', views:'44K views',  desc:'How AI-powered dash cams identify risky driving events and enable proactive coaching to improve fleet safety scores.',                                              mp4Url:null, userAdded:false},
-  {id:5,  ytId:'3JZ_D3ELwOQ', title:'ELD Compliance Explained for Fleet Managers',   channel:'Verizon Connect', cat:'compliance',  duration:'5:47', views:'38K views',  desc:'A complete guide to ELD mandates, FMCSA rules, Hours of Service tracking, and how to stay audit-ready.',                                                           mp4Url:null, userAdded:false},
-
-  // ── Direct MP4 – Intel IoT DevKit GitHub (CC-BY-4.0) ─────────────
-  // Source: https://github.com/intel-iot-devkit/sample-videos
-  {id:6,  ytId:null, title:'Car Detection AI – Fleet Camera Demo',                   channel:'Intel IoT DevKit', cat:'gps',        duration:'0:31', views:'18K views',  desc:'AI inference sample showing real-time vehicle detection from a traffic camera — ideal for fleet yard and road monitoring use-cases.',                            mp4Url:'https://github.com/intel-iot-devkit/sample-videos/raw/master/car-detection.mp4',                    userAdded:false},
-  {id:7,  ytId:null, title:'Mixed Traffic Detection – Fleet Intersection',           channel:'Intel IoT DevKit', cat:'safety',     duration:'0:28', views:'11K views',  desc:'Simultaneous detection of persons, bicycles, and cars at a fleet depot entry — helps improve pedestrian safety scoring.',                                       mp4Url:'https://github.com/intel-iot-devkit/sample-videos/raw/master/person-bicycle-car-detection.mp4',    userAdded:false},
-  {id:8,  ytId:null, title:'In-Cabin Driver Action Recognition',                     channel:'Intel IoT DevKit', cat:'safety',     duration:'0:29', views:'23K views',  desc:'AI-powered in-cab video analysis detecting driver distraction, phone use, fatigue and seatbelt compliance for fleet safety programs.',                          mp4Url:'https://github.com/intel-iot-devkit/sample-videos/raw/master/driver-action-recognition.mp4',       userAdded:false},
-  {id:9,  ytId:null, title:'Worker & Vehicle Zone Detection – Fleet Yard',           channel:'Intel IoT DevKit', cat:'compliance', duration:'0:30', views:'9K views',   desc:'Computer vision demo for vehicle and worker co-habitation zones in a logistics depot — supports DOT safety zone compliance reporting.',                       mp4Url:'https://github.com/intel-iot-devkit/sample-videos/raw/master/worker-zone-detection.mp4',           userAdded:false},
-
-  // ── Direct MP4 – Google GTV Sample Bucket (public domain) ────────
-  // Source: https://storage.googleapis.com/gtv-videos-bucket/sample/
-  {id:10, ytId:null, title:'SUV Fleet Vehicle – Off-Road Capability Test',           channel:'Geotab Field',     cat:'maintenance', duration:'0:58', views:'31K views',  desc:'Demonstrates real-world fleet vehicle durability on mixed terrain — useful for preventive maintenance benchmarking and vehicle lifecycle planning.',          mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4', userAdded:false},
-  {id:11, ytId:null, title:'Fleet Convoy Operations – Bullrun Route Drill',          channel:'FleetOps TV',      cat:'gps',         duration:'0:54', views:'27K views',  desc:'Multi-vehicle convoy coordination demo showcasing real-time GPS fleet tracking, inter-vehicle spacing alerts, and live route deviation monitoring.',         mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',        userAdded:false},
-  {id:12, ytId:null, title:'Vehicle Acquisition – Fleet Budget Analysis',            channel:'FleetCost Pro',    cat:'software',    duration:'0:50', views:'19K views',  desc:'Practical guide to evaluating total cost of ownership when procuring new fleet vehicles — covering depreciation, insurance, and fuel cost modeling.',       mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',   userAdded:false},
-  {id:13, ytId:null, title:'GPS Joyride Detection & Unauthorized Use Alert',         channel:'Samsara Demo',     cat:'gps',         duration:'0:45', views:'34K views',  desc:'How telematics platforms flag after-hours vehicle usage, unauthorized joyrides, and driver identity mismatches through GPS behavioral analytics.',          mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',          userAdded:false},
-  {id:14, ytId:null, title:'Geofence Breach Scenario – Fleet Security Demo',         channel:'Geotab Demo',      cat:'compliance',  duration:'0:32', views:'22K views',  desc:'Live walkthrough of a geofence breach event: vehicle exits approved zone, triggering real-time alerts, automatic report filing, and dispatcher notification.', mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',           userAdded:false},
-  {id:15, ytId:null, title:'Emergency Fleet Response – Rapid Dispatch Drill',        channel:'RTA Fleet',        cat:'safety',      duration:'0:15', views:'16K views',  desc:'Simulated emergency dispatch scenario for fleet managers — covers SOS triggers, nearest-vehicle routing, and driver welfare check protocols.',                mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',            userAdded:false},
-  {id:16, ytId:null, title:'Fleet Driver Rewards & Gamification Demo',               channel:'Motive',           cat:'software',    duration:'0:30', views:'14K views',  desc:'How gamification and driver scorecards reduce risky behaviour — integrating safety scores, fuel efficiency metrics, and reward redemption within the app.',  mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',               userAdded:false},
-  {id:17, ytId:null, title:'Fleet System Overload – Stress Test & Recovery',         channel:'Fleetio',          cat:'maintenance', duration:'0:14', views:'8K views',   desc:'Worst-case fleet failure simulation — multiple simultaneous vehicle breakdowns, escalation workflows, and automated vendor dispatch in action.',              mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',         userAdded:false},
-  {id:18, ytId:null, title:'Reducing Fleet Fuel Costs with Telematics',              channel:'Motive',           cat:'fuel',        duration:'0:46', views:'52K views',  desc:'Proven strategies using telematics data to cut idle time, optimize routes, and reduce overall fleet fuel expenses — achieving up to 20% savings.',           mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',            userAdded:false},
-  // Note: id:18 reuses a sample clip as placeholder; swap mp4Url for a real fuel-demo MP4 when available.
-
-];
-let nextId = 19;
-let currentView = 'card';
-let activeTag   = 'all';
-let selected    = new Set();
-let postedIds   = new Set();
-let postTarget  = [];
-
-// ── AUTH ──────────────────────────────────────────────────────────
-function doLogin(){
-  const u=document.getElementById('usr').value.trim();
-  const p=document.getElementById('pwd').value;
-  if(u===CREDS.username&&p===CREDS.password){
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('app').style.display='block';
-    buildTags(); renderVideos(); renderMemberList();
-  } else {
-    document.getElementById('login-err').style.display='block';
-  }
-}
-function doLogout(){
-  document.getElementById('app').style.display='none';
-  document.getElementById('login-screen').style.display='flex';
-  document.getElementById('usr').value='';
-  document.getElementById('pwd').value='';
-  document.getElementById('login-err').style.display='none';
-  selected.clear(); updateSelBar();
-}
-
-// ── SETTINGS ──────────────────────────────────────────────────────
-function saveSettings(){
-  // Save edits to each group's fields
-  tgGroups.forEach(g=>{
-    const t = document.getElementById('g-token-'+g.id);
-    const c = document.getElementById('g-chatid-'+g.id);
-    if(t) g.botToken = t.value.trim();
-    if(c) g.chatId   = c.value.trim();
-  });
-  renderTgGroupList();
-  closeModal('settings-modal');
-}
-function renderTgGroupList(){
-  const wrap = document.getElementById('tg-group-list');
-  if(!wrap) return;
-  if(!tgGroups.length){
-    wrap.innerHTML='<div style="font-size:12px;color:#bbb;padding:6px 0">No groups yet. Add one below.</div>';
-    return;
-  }
-  wrap.innerHTML = tgGroups.map(g=>{
-    const configured = g.botToken && g.chatId;
-    return `<div class="tg-group-item">
-      <div class="tg-group-item-head">
-        <div class="tg-group-name">
-          📡 ${g.name}
-          ${g.isDefault?'<span class="tg-group-badge default">✓ Default</span>':'<span class="tg-group-badge">Group</span>'}
-        </div>
-        <div class="tg-group-actions">
-          ${!g.isDefault?`<button class="tg-group-btn set-default" onclick="setDefaultGroup(${g.id})">Set Default</button>`:''}
-          ${tgGroups.length>1?`<button class="tg-group-btn remove" onclick="removeTgGroup(${g.id})">✕ Remove</button>`:''}
-        </div>
-      </div>
-      <div class="tg-group-fields">
-        <div class="f-group">
-          <label class="f-label">Bot Token</label>
-          <input type="text" id="g-token-${g.id}" value="${g.botToken}" placeholder="Bot Token"/>
-        </div>
-        <div class="f-group">
-          <label class="f-label">Chat ID</label>
-          <input type="text" id="g-chatid-${g.id}" value="${g.chatId}" placeholder="-1001234567890"/>
-        </div>
-      </div>
-      <div class="tg-group-status ${configured?'ok':'warn'}">
-        ${configured?'✅ Configured':'⚠️ Token & Chat ID required'}
-      </div>
-    </div>`;
-  }).join('');
-}
-function addTgGroup(){
-  const name  = document.getElementById('ng-name').value.trim();
-  const token = document.getElementById('ng-token').value.trim();
-  const chat  = document.getElementById('ng-chatid').value.trim();
-  if(!name){alert('Group name is required.');return;}
-  tgGroups.push({id:nextGroupId++, name, botToken:token, chatId:chat, isDefault:false});
-  document.getElementById('ng-name').value='';
-  document.getElementById('ng-token').value='';
-  document.getElementById('ng-chatid').value='';
-  renderTgGroupList();
-}
-function removeTgGroup(id){
-  const wasDefault = tgGroups.find(g=>g.id===id)?.isDefault;
-  tgGroups = tgGroups.filter(g=>g.id!==id);
-  if(wasDefault && tgGroups.length) tgGroups[0].isDefault = true;
-  renderTgGroupList();
-}
-function setDefaultGroup(id){
-  tgGroups.forEach(g=>g.isDefault = g.id===id);
-  renderTgGroupList();
-}
-
-// ── MEMBERS ────────────────────────────────────────────────────────
-function renderMemberList(){
-  const wrap = document.getElementById('member-list');
-  if(members.length===0){
-    wrap.innerHTML='<div style="font-size:12px;color:#bbb;padding:8px 0;">No members added yet.</div>';
-    return;
-  }
-  wrap.innerHTML = members.map(m=>`
-    <div class="member-item">
-      <div class="member-item-left">
-        <div class="member-avatar">${m.name.charAt(0).toUpperCase()}</div>
-        <div>
-          <div class="member-name">${m.name}</div>
-          <div class="member-handle">${m.handle}</div>
-        </div>
-      </div>
-      <button class="member-remove" onclick="removeMember(${m.id})" title="Remove">✕</button>
-    </div>`).join('');
-}
-function addMember(){
-  const name   = document.getElementById('new-member-name').value.trim();
-  const handle = document.getElementById('new-member-handle').value.trim();
-  if(!name) return;
-  const h = handle.startsWith('@')?handle:'@'+handle;
-  members.push({id:nextMemberId++, name, handle:h});
-  document.getElementById('new-member-name').value='';
-  document.getElementById('new-member-handle').value='';
-  renderMemberList();
-}
-function removeMember(id){
-  members = members.filter(m=>m.id!==id);
-  renderMemberList();
-}
-
-// ── TAGS ──────────────────────────────────────────────────────────
-function buildTags(){
-  document.getElementById('tag-list').innerHTML = CATEGORIES.map(c=>`
-    <button class="tag ${c.key==='all'?'active':''}" data-cat="${c.key}" onclick="setTag('${c.key}')">${c.label}</button>`).join('');
-}
-function setTag(key){
-  activeTag=key;
-  document.querySelectorAll('.tag').forEach(t=>t.classList.toggle('active',t.dataset.cat===key));
-  renderVideos();
-}
-
-// ── VIEW ──────────────────────────────────────────────────────────
-function setView(v){
-  currentView=v;
-  document.getElementById('btn-card').classList.toggle('active',v==='card');
-  document.getElementById('btn-list').classList.toggle('active',v==='list');
-  renderVideos();
-}
-
-// ── SELECTION ─────────────────────────────────────────────────────
-function toggleSel(id,e){
-  e&&e.stopPropagation();
-  selected.has(id)?selected.delete(id):selected.add(id);
-  const el=document.querySelector(`[data-id="${id}"]`);
-  if(el) el.classList.toggle('selected',selected.has(id));
-  updateSelBar();
-}
-function clearAll(){
-  selected.clear();
-  document.querySelectorAll('.selected').forEach(el=>el.classList.remove('selected'));
-  document.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
-  updateSelBar();
-}
-function updateSelBar(){
-  document.getElementById('sel-bar').classList.toggle('hidden',selected.size===0);
-  document.getElementById('sel-count').textContent=selected.size;
-}
-
-// ── FILTER ────────────────────────────────────────────────────────
-function getFiltered(){
-  const q=(document.getElementById('search-input')?.value||'').toLowerCase();
-  return videos.filter(v=>{
-    const catOk=activeTag==='all'||v.cat===activeTag;
-    const qOk=!q||v.title.toLowerCase().includes(q)||v.channel.toLowerCase().includes(q)||v.desc.toLowerCase().includes(q);
-    return catOk&&qOk;
-  });
-}
-
-// ── THUMBNAIL ─────────────────────────────────────────────────────
-function thumbHtml(v){
-  const g=GRADIENTS[v.cat]||['#333','#666'];
-  if(v.ytId){
-    return `<img class="thumb-yt" src="https://img.youtube.com/vi/${v.ytId}/mqdefault.jpg" alt="${v.title}" loading="lazy"
-      onerror="this.style.display='none';this.nextSibling.style.display='flex'"/>
-      <div class="thumb-grad" style="display:none;background:linear-gradient(135deg,${g[0]},${g[1]})">
-        <span style="font-size:24px">${ICONS[v.cat]||'📹'}</span><span>${v.channel}</span></div>`;
-  }
-  return `<div class="thumb-grad" style="background:linear-gradient(135deg,${g[0]},${g[1]})">
-    <span style="font-size:28px">${ICONS[v.cat]||'📹'}</span><span>${v.channel}</span></div>`;
-}
-function ytLink(v){
-  if(v.ytId) return 'https://www.youtube.com/watch?v=' + v.ytId;
-  if(v.mp4Url) return v.mp4Url;
-  return '#';
-}
-function catBadge(cat){
-  const c=CATEGORIES.find(x=>x.key===cat)||{label:cat};
-  return `<span class="cat-badge cat-${cat}">${c.label}</span>`;
-}
-
-// ── RENDER ────────────────────────────────────────────────────────
-function renderVideos(){
-  const filtered=getFiltered();
-  const c=document.getElementById('video-container');
-  const label=activeTag==='all'?'All Videos':(CATEGORIES.find(x=>x.key===activeTag)?.label||activeTag);
-  document.getElementById('section-title').textContent=label;
-  document.getElementById('result-count').textContent=`${filtered.length} video${filtered.length!==1?'s':''}`;
-
-  if(!filtered.length){
-    c.className='';
-    c.innerHTML=`<div class="empty-state"><div class="e-icon">🔍</div><p>No videos match your search.<br>Try a different keyword or category.</p></div>`;
-    return;
-  }
-
-  if(currentView==='card'){
-    c.className='grid';
-    c.innerHTML=filtered.map(v=>`
-      <div class="card ${selected.has(v.id)?'selected':''}" data-id="${v.id}">
-        ${v.userAdded?'<span class="user-badge">MY VIDEO</span>':''}
-        ${v.mp4Url?(v.mp4Url.includes('github')
-          ?'<span class="mp4-badge" style="background:rgba(36,106,56,.9)" title="Direct MP4 · Intel IoT GitHub (CC-BY-4.0)">🐙 GitHub MP4</span>'
-          :'<span class="mp4-badge" title="Direct MP4 · Google GTV Sample">📹 MP4</span>'
-        ):''}
-        <a href="${ytLink(v)}" target="_blank">
-          <div class="thumb-wrap">
-            ${thumbHtml(v)}
-            <div class="play-overlay"><div class="play-icon">▶</div></div>
-            <span class="thumb-duration">${v.duration}</span>
-          </div>
-        </a>
-        <div class="card-body">
-          ${catBadge(v.cat)}
-          <div class="card-title">${v.title}</div>
-          <div class="card-channel">${v.channel}</div>
-          <div class="card-footer">
-            <span class="card-views">${v.views}</span>
-            <div class="card-actions">
-              <input type="checkbox" class="card-cb" ${selected.has(v.id)?'checked':''} onchange="toggleSel(${v.id},event)" title="Select"/>
-              <button class="post-btn ${postedIds.has(v.id)?'sent':''}" onclick="openPostModal([${v.id}])">
-                ${postedIds.has(v.id)?'✓ Sent':'✈ Post'}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>`).join('');
-  } else {
-    c.className='list';
-    c.innerHTML=filtered.map(v=>`
-      <div class="list-item ${selected.has(v.id)?'selected':''}" data-id="${v.id}">
-        <a href="${ytLink(v)}" target="_blank" style="display:contents">
-          <div class="list-thumb">
-            <div class="thumb-wrap" style="height:100%">
-              ${thumbHtml(v)}
-              <span class="thumb-duration">${v.duration}</span>
-            </div>
-          </div>
-        </a>
-        <div class="list-body">
-          ${catBadge(v.cat)}
-          <div class="list-title">${v.title}${v.userAdded?' <em style="color:#e94560;font-style:normal;font-size:10px;font-weight:700">MY VIDEO</em>':''}${v.mp4Url?(v.mp4Url.includes('github')?' <em style="color:#246a38;font-style:normal;font-size:10px;font-weight:700">🐙 GitHub MP4</em>':' <em style="color:#1b5e20;font-style:normal;font-size:10px;font-weight:700">📹 MP4</em>'):''}</div>
-          <div class="list-channel">${v.channel}</div>
-          <div class="list-desc">${v.desc}</div>
-        </div>
-        <div class="list-actions">
-          <span class="list-views">${v.views}</span>
-          <div class="list-action-row">
-            <input type="checkbox" class="list-cb" ${selected.has(v.id)?'checked':''} onchange="toggleSel(${v.id},event)" title="Select"/>
-            <button class="post-btn ${postedIds.has(v.id)?'sent':''}" onclick="openPostModal([${v.id}])">
-              ${postedIds.has(v.id)?'✓ Sent':'✈ Post'}
-            </button>
-          </div>
-        </div>
-      </div>`).join('');
-  }
-}
-
-// ── POST MODAL ────────────────────────────────────────────────────
-function populateGroupDropdown(){
-  const sel = document.getElementById('post-group-select');
-  const msg = document.getElementById('post-no-groups-msg');
-  const btn = document.getElementById('post-confirm-btn');
-  sel.innerHTML = '';
-  if(!tgGroups.length){
-    sel.style.display='none'; msg.style.display='block'; btn.disabled=true; return;
-  }
-  sel.style.display='block'; msg.style.display='none'; btn.disabled=false;
-  tgGroups.forEach(g=>{
-    const opt = document.createElement('option');
-    opt.value = g.id;
-    opt.textContent = g.name + (g.isDefault?' (Default)':'')+(!g.botToken||!g.chatId?' ⚠ not configured':'');
-    if(g.isDefault) opt.selected = true;
-    sel.appendChild(opt);
-  });
-}
-function openPostModal(ids){
-  postTarget=ids||Array.from(selected);
-  if(!postTarget.length) return;
-  const items=postTarget.map(id=>videos.find(v=>v.id===id)).filter(Boolean);
-  const multi=items.length>1;
-  document.getElementById('post-modal-title').textContent=multi?`📤 Post ${items.length} Videos to Telegram`:'📤 Post to Telegram';
-  document.getElementById('post-modal-intro').textContent=multi
-    ?`The following ${items.length} video links will be posted to the selected Telegram group:`
-    :'The following video link will be posted to the selected Telegram group:';
-  document.getElementById('post-modal-items').innerHTML=items.map(v=>`
-    <div class="modal-video-item">
-      <div class="modal-mini-thumb">
-        <div class="thumb-wrap" style="height:100%">${thumbHtml(v)}</div>
-      </div>
-      <div class="modal-video-info">
-        <div class="modal-video-title">${v.title}</div>
-        <div class="modal-video-ch">${v.channel} · ${v.views}</div>
-        ${v.mp4Url?'<div style="font-size:10px;font-weight:700;color:#1b5e20;background:#e8f5e9;display:inline-block;padding:2px 8px;border-radius:8px;margin-bottom:4px">📹 Will send as Video</div><br>':''}
-        <a class="modal-video-link" href="${v.mp4Url||ytLink(v)}" target="_blank">${v.mp4Url||ytLink(v)}</a>
-      </div>
-    </div>`).join('');
-  populateGroupDropdown();
-  const btn=document.getElementById('post-confirm-btn');
-  btn.className='modal-confirm'; btn.textContent='✈ Confirm & Post'; btn.disabled=false;
-  const errEl=document.getElementById('post-error-msg'); if(errEl){errEl.style.display='none';errEl.textContent='';}
-  openModal('post-modal');
-}
-async function confirmPost(){
-  const sel = document.getElementById('post-group-select');
-  const groupId = parseInt(sel.value);
-  const group = tgGroups.find(g=>g.id===groupId);
-  const btn = document.getElementById('post-confirm-btn');
-  btn.disabled=true; btn.textContent='Posting…';
-
-  const items = postTarget.map(id=>videos.find(v=>v.id===id)).filter(Boolean);
-
-  // If group has no credentials, run in demo mode
-  if(!group || !group.botToken || !group.chatId){
-    await new Promise(r=>setTimeout(r,800));
-    postTarget.forEach(id=>postedIds.add(id));
-    selected.clear(); updateSelBar(); renderVideos();
-    btn.className='modal-confirm done';
-    btn.textContent='✓ Posted (Demo Mode)';
-    setTimeout(()=>closeModal('post-modal'),1500);
-    return;
-  }
-
-  // Build one message per video and send via Telegram Bot API
-  let allOk = true;
-  let failReason = '';
-  for(const v of items){
-    const link = ytLink(v);
-    const caption = '📹 ' + v.title + '\n🏢 ' + v.channel + ' · ' + v.views + '\n\n' + link;
-    try {
-      let apiMethod, payload;
-      if(v.mp4Url){
-        // Send as actual video using sendVideo
-        apiMethod = 'sendVideo';
-        payload = {
-          chat_id: group.chatId,
-          video: v.mp4Url,
-          caption: caption,
-          supports_streaming: true
-        };
-      } else {
-        // Fall back to sendMessage with link
-        apiMethod = 'sendMessage';
-        payload = {
-          chat_id: group.chatId,
-          text: caption,
-          disable_web_page_preview: false
-        };
-      }
-      const res = await fetch('https://api.telegram.org/bot' + group.botToken + '/' + apiMethod, {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if(!data.ok){
-        allOk = false;
-        failReason = data.description || 'Unknown error';
-        break;
-      }
-    } catch(err){
-      allOk = false;
-      failReason = 'Network error — check your connection.';
-      break;
-    }
-  }
-
-  if(allOk){
-    postTarget.forEach(id=>postedIds.add(id));
-    selected.clear(); updateSelBar(); renderVideos();
-    btn.className='modal-confirm done';
-    btn.textContent = `✓ Posted to ${group.name}!`;
-    setTimeout(()=>closeModal('post-modal'),1500);
-  } else {
-    btn.disabled=false;
-    btn.textContent='✈ Retry';
-    btn.className='modal-confirm';
-    const errEl = document.getElementById('post-error-msg');
-    if(errEl){ errEl.textContent='❌ Failed: '+failReason; errEl.style.display='block'; }
-  }
-}
-
-// ── ADD VIDEO ─────────────────────────────────────────────────────
-function openAddModal(){
-  ['add-url','add-title','add-channel','add-dur','add-views','add-desc','add-mp4'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('add-cat').value='software';
-  document.getElementById('yt-preview').style.display='none';
-  const ms=document.getElementById('mp4-status'); if(ms){ms.style.display='none';ms.textContent='';}
-  openModal('add-modal');
-}
-function previewYT(){
-  const id=extractYtId(document.getElementById('add-url').value.trim());
-  const p=document.getElementById('yt-preview');
-  if(id){ document.getElementById('yt-preview-img').src=`https://img.youtube.com/vi/${id}/mqdefault.jpg`; p.style.display='block'; }
-  else p.style.display='none';
-}
-function extractYtId(url){
-  const m=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-  return m?m[1]:null;
-}
-function previewMp4(){
-  const url = document.getElementById('add-mp4').value.trim();
-  const el  = document.getElementById('mp4-status');
-  if(!url){ el.style.display='none'; return; }
-  const isLikelyMp4 = /\.(mp4|mov|avi|mkv|webm)(\?|$)/i.test(url) || url.includes('.mp4');
-  el.style.display='block';
-  if(isLikelyMp4){
-    el.style.background='#e8f5e9'; el.style.color='#1b5e20';
-    el.textContent='✅ Looks like a valid video URL — will use sendVideo when posting to Telegram.';
-  } else {
-    el.style.background='#fff8e1'; el.style.color='#f57f17';
-    el.textContent='⚠️ URL does not end in .mp4 — Telegram may still accept it, but results may vary.';
-  }
-}
-function addVideo(){
-  const url=document.getElementById('add-url').value.trim();
-  const title=document.getElementById('add-title').value.trim();
-  if(!url||!title){alert('URL and Title are required.');return;}
-  const mp4Url=document.getElementById('add-mp4').value.trim();
-  videos.unshift({
-    id:nextId++, ytId:extractYtId(url), title,
-    channel:document.getElementById('add-channel').value.trim()||'Unknown Channel',
-    cat:document.getElementById('add-cat').value,
-    duration:document.getElementById('add-dur').value.trim()||'–',
-    views:document.getElementById('add-views').value.trim()||'–',
-    desc:document.getElementById('add-desc').value.trim()||'',
-    mp4Url: mp4Url||null,
-    userAdded:true,
-  });
-  closeModal('add-modal');
-  activeTag='all';
-  document.querySelectorAll('.tag').forEach(t=>t.classList.toggle('active',t.dataset.cat==='all'));
-  document.getElementById('search-input').value='';
-  renderVideos();
-}
-
-// ── MODAL HELPERS ─────────────────────────────────────────────────
-function openModal(id){
-  if(id==='settings-modal'){
-    renderTgGroupList();
-    renderMemberList();
-  }
-  document.getElementById(id).classList.add('open');
-}
-function closeModal(id){ document.getElementById(id).classList.remove('open'); }
-</script>
+<script src="app.js"></script>
 </body>
 </html>

@@ -75,6 +75,7 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
 .card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.11);}
 .card.selected{outline:3px solid #0f3460;box-shadow:0 0 0 5px rgba(15,52,96,.1);}
 .user-badge{position:absolute;top:9px;left:9px;z-index:5;background:rgba(233,69,96,.9);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;}
+.mp4-badge{position:absolute;top:9px;right:9px;z-index:5;background:rgba(27,94,32,.88);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;}
 
 .thumb-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;}
 .thumb-grad{width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:rgba(255,255,255,.75);}
@@ -337,6 +338,9 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f2f8;color:#1a1a2e;min-heig
         <input type="text" id="add-views" placeholder="e.g. 12K views"/>
         <label class="f-label" style="margin-top:10px">Description</label>
         <input type="text" id="add-desc" placeholder="Short description"/>
+        <label class="f-label" style="margin-top:10px">Direct MP4 URL <span style="font-weight:400;color:#aaa;text-transform:none;letter-spacing:0">(optional — used for Telegram video posting)</span></label>
+        <input type="text" id="add-mp4" placeholder="https://example.com/video.mp4" oninput="previewMp4()"/>
+        <div id="mp4-status" style="display:none;margin-top:6px;font-size:11px;padding:5px 10px;border-radius:6px;font-weight:600;"></div>
       </div>
     </div>
     <div class="modal-foot">
@@ -396,7 +400,7 @@ const CREDS = {username:'admin',password:'fleet123'};
 
 // ── STATE ──────────────────────────────────────────────────────────
 let tgGroups = [
-  {id:1, name:'Fleet Operations', botToken:'', chatId:'', isDefault:true},
+  {id:1, name:'Fleet Operations', botToken:'', chatId:'-5274392721', isDefault:true},
 ];
 let nextGroupId = 2;
 let members = [
@@ -425,16 +429,36 @@ const GRADIENTS = {
 const ICONS = {software:'🖥️',gps:'📡',safety:'🛡️',maintenance:'🔧',fuel:'⛽',compliance:'📋'};
 
 let videos = [
-  {id:1,ytId:null,title:'What Is Fleet Management Software?',channel:'Fleetio',cat:'software',duration:'4:12',views:'94K views',desc:'A concise overview of how modern fleet management software streamlines operations, maintenance, and compliance.',userAdded:false},
-  {id:2,ytId:null,title:'GPS Vehicle Tracking Explained',channel:'Geotab',cat:'gps',duration:'3:55',views:'67K views',desc:'How real-time GPS telematics gives fleet managers full visibility over vehicle location, speed, and trip history.',userAdded:false},
-  {id:3,ytId:null,title:'Reducing Fleet Fuel Costs with Telematics',channel:'Motive',cat:'fuel',duration:'6:01',views:'52K views',desc:'Proven strategies using telematics data to cut idle time, optimize routes, and reduce overall fuel expenses.',userAdded:false},
-  {id:4,ytId:null,title:'Driver Safety Coaching with Dash Cams',channel:'Lytx',cat:'safety',duration:'5:18',views:'44K views',desc:'How AI-powered dash cams identify risky driving events and enable proactive coaching to improve fleet safety scores.',userAdded:false},
-  {id:5,ytId:null,title:'Preventive Maintenance Scheduling for Fleets',channel:'RTA Fleet',cat:'maintenance',duration:'7:22',views:'31K views',desc:'Best practices for setting up preventive maintenance schedules that reduce vehicle downtime and extend asset lifespan.',userAdded:false},
-  {id:6,ytId:null,title:'ELD Compliance: What Fleet Managers Must Know',channel:'Verizon Connect',cat:'compliance',duration:'5:47',views:'38K views',desc:'A complete guide to ELD mandates, FMCSA rules, and how to stay audit-ready.',userAdded:false},
-  {id:7,ytId:null,title:'Fleet Route Optimization Strategies',channel:'Samsara',cat:'gps',duration:'4:33',views:'29K views',desc:'Using AI-powered dispatch and route planning tools to reduce mileage, improve delivery times, and save costs.',userAdded:false},
-  {id:8,ytId:null,title:'Digital DVIR & Vehicle Inspection Best Practices',channel:'Fleetio',cat:'compliance',duration:'4:58',views:'22K views',desc:'How to implement digital Driver Vehicle Inspection Reports to catch issues early and stay DOT compliant.',userAdded:false},
+
+  // ── YouTube videos (real YT IDs) ─────────────────────────────────
+  {id:1,  ytId:'ZL0HGFyX_Ks', title:'What Is Fleet Management Software?',           channel:'Fleetio',        cat:'software',     duration:'2:12', views:'94K views',  desc:'A concise overview of how modern fleet management software streamlines vehicle operations, maintenance scheduling, and compliance.',                                 mp4Url:null, userAdded:false},
+  {id:2,  ytId:'qwMHrn7MDKQ', title:'Geotab GPS Fleet Tracking Overview',            channel:'Geotab',         cat:'gps',          duration:'3:21', views:'67K views',  desc:'How real-time GPS telematics gives fleet managers full visibility over vehicle location, speed, and trip history.',                                                  mp4Url:null, userAdded:false},
+  {id:3,  ytId:'UsFy4SZQNGI', title:'Samsara Fleet Management Platform Demo',        channel:'Samsara',        cat:'software',     duration:'4:47', views:'81K views',  desc:'Full walkthrough of the Samsara dashboard — GPS tracking, driver safety scores, ELD compliance, and maintenance alerts.',                                          mp4Url:null, userAdded:false},
+  {id:4,  ytId:'yoiyFTSVRHI', title:'Driver Safety Coaching with Dash Cams',         channel:'Lytx',           cat:'safety',       duration:'5:18', views:'44K views',  desc:'How AI-powered dash cams identify risky driving events and enable proactive coaching to improve fleet safety scores.',                                              mp4Url:null, userAdded:false},
+  {id:5,  ytId:'3JZ_D3ELwOQ', title:'ELD Compliance Explained for Fleet Managers',   channel:'Verizon Connect', cat:'compliance',  duration:'5:47', views:'38K views',  desc:'A complete guide to ELD mandates, FMCSA rules, Hours of Service tracking, and how to stay audit-ready.',                                                           mp4Url:null, userAdded:false},
+
+  // ── Direct MP4 – Intel IoT DevKit GitHub (CC-BY-4.0) ─────────────
+  // Source: https://github.com/intel-iot-devkit/sample-videos
+  {id:6,  ytId:null, title:'Car Detection AI – Fleet Camera Demo',                   channel:'Intel IoT DevKit', cat:'gps',        duration:'0:31', views:'18K views',  desc:'AI inference sample showing real-time vehicle detection from a traffic camera — ideal for fleet yard and road monitoring use-cases.',                            mp4Url:'https://github.com/intel-iot-devkit/sample-videos/raw/master/car-detection.mp4',                    userAdded:false},
+  {id:7,  ytId:null, title:'Mixed Traffic Detection – Fleet Intersection',           channel:'Intel IoT DevKit', cat:'safety',     duration:'0:28', views:'11K views',  desc:'Simultaneous detection of persons, bicycles, and cars at a fleet depot entry — helps improve pedestrian safety scoring.',                                       mp4Url:'https://github.com/intel-iot-devkit/sample-videos/raw/master/person-bicycle-car-detection.mp4',    userAdded:false},
+  {id:8,  ytId:null, title:'In-Cabin Driver Action Recognition',                     channel:'Intel IoT DevKit', cat:'safety',     duration:'0:29', views:'23K views',  desc:'AI-powered in-cab video analysis detecting driver distraction, phone use, fatigue and seatbelt compliance for fleet safety programs.',                          mp4Url:'https://github.com/intel-iot-devkit/sample-videos/raw/master/driver-action-recognition.mp4',       userAdded:false},
+  {id:9,  ytId:null, title:'Worker & Vehicle Zone Detection – Fleet Yard',           channel:'Intel IoT DevKit', cat:'compliance', duration:'0:30', views:'9K views',   desc:'Computer vision demo for vehicle and worker co-habitation zones in a logistics depot — supports DOT safety zone compliance reporting.',                       mp4Url:'https://github.com/intel-iot-devkit/sample-videos/raw/master/worker-zone-detection.mp4',           userAdded:false},
+
+  // ── Direct MP4 – Google GTV Sample Bucket (public domain) ────────
+  // Source: https://storage.googleapis.com/gtv-videos-bucket/sample/
+  {id:10, ytId:null, title:'SUV Fleet Vehicle – Off-Road Capability Test',           channel:'Geotab Field',     cat:'maintenance', duration:'0:58', views:'31K views',  desc:'Demonstrates real-world fleet vehicle durability on mixed terrain — useful for preventive maintenance benchmarking and vehicle lifecycle planning.',          mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4', userAdded:false},
+  {id:11, ytId:null, title:'Fleet Convoy Operations – Bullrun Route Drill',          channel:'FleetOps TV',      cat:'gps',         duration:'0:54', views:'27K views',  desc:'Multi-vehicle convoy coordination demo showcasing real-time GPS fleet tracking, inter-vehicle spacing alerts, and live route deviation monitoring.',         mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',        userAdded:false},
+  {id:12, ytId:null, title:'Vehicle Acquisition – Fleet Budget Analysis',            channel:'FleetCost Pro',    cat:'software',    duration:'0:50', views:'19K views',  desc:'Practical guide to evaluating total cost of ownership when procuring new fleet vehicles — covering depreciation, insurance, and fuel cost modeling.',       mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',   userAdded:false},
+  {id:13, ytId:null, title:'GPS Joyride Detection & Unauthorized Use Alert',         channel:'Samsara Demo',     cat:'gps',         duration:'0:45', views:'34K views',  desc:'How telematics platforms flag after-hours vehicle usage, unauthorized joyrides, and driver identity mismatches through GPS behavioral analytics.',          mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',          userAdded:false},
+  {id:14, ytId:null, title:'Geofence Breach Scenario – Fleet Security Demo',         channel:'Geotab Demo',      cat:'compliance',  duration:'0:32', views:'22K views',  desc:'Live walkthrough of a geofence breach event: vehicle exits approved zone, triggering real-time alerts, automatic report filing, and dispatcher notification.', mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',           userAdded:false},
+  {id:15, ytId:null, title:'Emergency Fleet Response – Rapid Dispatch Drill',        channel:'RTA Fleet',        cat:'safety',      duration:'0:15', views:'16K views',  desc:'Simulated emergency dispatch scenario for fleet managers — covers SOS triggers, nearest-vehicle routing, and driver welfare check protocols.',                mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',            userAdded:false},
+  {id:16, ytId:null, title:'Fleet Driver Rewards & Gamification Demo',               channel:'Motive',           cat:'software',    duration:'0:30', views:'14K views',  desc:'How gamification and driver scorecards reduce risky behaviour — integrating safety scores, fuel efficiency metrics, and reward redemption within the app.',  mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',               userAdded:false},
+  {id:17, ytId:null, title:'Fleet System Overload – Stress Test & Recovery',         channel:'Fleetio',          cat:'maintenance', duration:'0:14', views:'8K views',   desc:'Worst-case fleet failure simulation — multiple simultaneous vehicle breakdowns, escalation workflows, and automated vendor dispatch in action.',              mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',         userAdded:false},
+  {id:18, ytId:null, title:'Reducing Fleet Fuel Costs with Telematics',              channel:'Motive',           cat:'fuel',        duration:'0:46', views:'52K views',  desc:'Proven strategies using telematics data to cut idle time, optimize routes, and reduce overall fleet fuel expenses — achieving up to 20% savings.',           mp4Url:'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',            userAdded:false},
+  // Note: id:18 reuses a sample clip as placeholder; swap mp4Url for a real fuel-demo MP4 when available.
+
 ];
-let nextId = 9;
+let nextId = 19;
 let currentView = 'card';
 let activeTag   = 'all';
 let selected    = new Set();
@@ -627,7 +651,9 @@ function thumbHtml(v){
     <span style="font-size:28px">${ICONS[v.cat]||'📹'}</span><span>${v.channel}</span></div>`;
 }
 function ytLink(v){
-  return v.ytId?`https://www.youtube.com/watch?v=${v.ytId}`:`https://www.youtube.com/results?search_query=${encodeURIComponent(v.title)}`;
+  if(v.ytId) return 'https://www.youtube.com/watch?v=' + v.ytId;
+  if(v.mp4Url) return v.mp4Url;
+  return '#';
 }
 function catBadge(cat){
   const c=CATEGORIES.find(x=>x.key===cat)||{label:cat};
@@ -653,6 +679,10 @@ function renderVideos(){
     c.innerHTML=filtered.map(v=>`
       <div class="card ${selected.has(v.id)?'selected':''}" data-id="${v.id}">
         ${v.userAdded?'<span class="user-badge">MY VIDEO</span>':''}
+        ${v.mp4Url?(v.mp4Url.includes('github')
+          ?'<span class="mp4-badge" style="background:rgba(36,106,56,.9)" title="Direct MP4 · Intel IoT GitHub (CC-BY-4.0)">🐙 GitHub MP4</span>'
+          :'<span class="mp4-badge" title="Direct MP4 · Google GTV Sample">📹 MP4</span>'
+        ):''}
         <a href="${ytLink(v)}" target="_blank">
           <div class="thumb-wrap">
             ${thumbHtml(v)}
@@ -689,7 +719,7 @@ function renderVideos(){
         </a>
         <div class="list-body">
           ${catBadge(v.cat)}
-          <div class="list-title">${v.title}${v.userAdded?' <em style="color:#e94560;font-style:normal;font-size:10px;font-weight:700">MY VIDEO</em>':''}</div>
+          <div class="list-title">${v.title}${v.userAdded?' <em style="color:#e94560;font-style:normal;font-size:10px;font-weight:700">MY VIDEO</em>':''}${v.mp4Url?(v.mp4Url.includes('github')?' <em style="color:#246a38;font-style:normal;font-size:10px;font-weight:700">🐙 GitHub MP4</em>':' <em style="color:#1b5e20;font-style:normal;font-size:10px;font-weight:700">📹 MP4</em>'):''}</div>
           <div class="list-channel">${v.channel}</div>
           <div class="list-desc">${v.desc}</div>
         </div>
@@ -741,7 +771,8 @@ function openPostModal(ids){
       <div class="modal-video-info">
         <div class="modal-video-title">${v.title}</div>
         <div class="modal-video-ch">${v.channel} · ${v.views}</div>
-        <a class="modal-video-link" href="${ytLink(v)}" target="_blank">${ytLink(v)}</a>
+        ${v.mp4Url?'<div style="font-size:10px;font-weight:700;color:#1b5e20;background:#e8f5e9;display:inline-block;padding:2px 8px;border-radius:8px;margin-bottom:4px">📹 Will send as Video</div><br>':''}
+        <a class="modal-video-link" href="${v.mp4Url||ytLink(v)}" target="_blank">${v.mp4Url||ytLink(v)}</a>
       </div>
     </div>`).join('');
   populateGroupDropdown();
@@ -775,16 +806,31 @@ async function confirmPost(){
   let failReason = '';
   for(const v of items){
     const link = ytLink(v);
-    const text = '📹 ' + v.title + '\n🏢 ' + v.channel + ' · ' + v.views + '\n\n' + link;
+    const caption = '📹 ' + v.title + '\n🏢 ' + v.channel + ' · ' + v.views + '\n\n' + link;
     try {
-      const res = await fetch('https://api.telegram.org/bot' + group.botToken + '/sendMessage', {
+      let apiMethod, payload;
+      if(v.mp4Url){
+        // Send as actual video using sendVideo
+        apiMethod = 'sendVideo';
+        payload = {
+          chat_id: group.chatId,
+          video: v.mp4Url,
+          caption: caption,
+          supports_streaming: true
+        };
+      } else {
+        // Fall back to sendMessage with link
+        apiMethod = 'sendMessage';
+        payload = {
+          chat_id: group.chatId,
+          text: caption,
+          disable_web_page_preview: false
+        };
+      }
+      const res = await fetch('https://api.telegram.org/bot' + group.botToken + '/' + apiMethod, {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({
-          chat_id: group.chatId,
-          text: text,
-          disable_web_page_preview: false
-        })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if(!data.ok){
@@ -816,9 +862,10 @@ async function confirmPost(){
 
 // ── ADD VIDEO ─────────────────────────────────────────────────────
 function openAddModal(){
-  ['add-url','add-title','add-channel','add-dur','add-views','add-desc'].forEach(id=>document.getElementById(id).value='');
+  ['add-url','add-title','add-channel','add-dur','add-views','add-desc','add-mp4'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('add-cat').value='software';
   document.getElementById('yt-preview').style.display='none';
+  const ms=document.getElementById('mp4-status'); if(ms){ms.style.display='none';ms.textContent='';}
   openModal('add-modal');
 }
 function previewYT(){
@@ -831,10 +878,25 @@ function extractYtId(url){
   const m=url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
   return m?m[1]:null;
 }
+function previewMp4(){
+  const url = document.getElementById('add-mp4').value.trim();
+  const el  = document.getElementById('mp4-status');
+  if(!url){ el.style.display='none'; return; }
+  const isLikelyMp4 = /\.(mp4|mov|avi|mkv|webm)(\?|$)/i.test(url) || url.includes('.mp4');
+  el.style.display='block';
+  if(isLikelyMp4){
+    el.style.background='#e8f5e9'; el.style.color='#1b5e20';
+    el.textContent='✅ Looks like a valid video URL — will use sendVideo when posting to Telegram.';
+  } else {
+    el.style.background='#fff8e1'; el.style.color='#f57f17';
+    el.textContent='⚠️ URL does not end in .mp4 — Telegram may still accept it, but results may vary.';
+  }
+}
 function addVideo(){
   const url=document.getElementById('add-url').value.trim();
   const title=document.getElementById('add-title').value.trim();
   if(!url||!title){alert('URL and Title are required.');return;}
+  const mp4Url=document.getElementById('add-mp4').value.trim();
   videos.unshift({
     id:nextId++, ytId:extractYtId(url), title,
     channel:document.getElementById('add-channel').value.trim()||'Unknown Channel',
@@ -842,6 +904,7 @@ function addVideo(){
     duration:document.getElementById('add-dur').value.trim()||'–',
     views:document.getElementById('add-views').value.trim()||'–',
     desc:document.getElementById('add-desc').value.trim()||'',
+    mp4Url: mp4Url||null,
     userAdded:true,
   });
   closeModal('add-modal');

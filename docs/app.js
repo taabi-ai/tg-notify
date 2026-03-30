@@ -75,7 +75,7 @@ let videos = [
     views:'Ready for /sendVideo',
     desc:'Local video from docs/videos; cards preview using thumbnail playback and source link is restricted to github.com.',
     mp4Url:'videos/' + fileName,
-    telegramVideoUrl:'https://github.com/intel-iot-devkit/sample-videos/raw/master/' + fileName,
+    telegramVideoUrl:null,
     githubUrl:'https://github.com/intel-iot-devkit/sample-videos/blob/master/' + fileName,
     userAdded:false
   }))
@@ -275,6 +275,10 @@ function ytLink(v){
 function telegramVideoLink(v){
   if(v.telegramVideoUrl) return v.telegramVideoUrl;
   if(v.mp4Url && /^https:\/\//i.test(v.mp4Url)) return v.mp4Url;
+  if(v.mp4Url){
+    // Resolve local docs/videos paths to a fully-qualified public URL (e.g. GitHub Pages).
+    return new URL(v.mp4Url, window.location.href).toString();
+  }
   return ytLink(v);
 }
 function catBadge(cat){

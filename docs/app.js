@@ -33,6 +33,7 @@ const GRADIENTS = {
 };
 const ICONS = {software:'🖥️',gps:'📡',safety:'🛡️',maintenance:'🔧',fuel:'⛽',compliance:'📋',critical:'🚨'};
 const GITHUB_SOURCE_LINK = 'https://github.com/intel-iot-devkit/sample-videos';
+const TELEGRAM_PUBLIC_VIDEO_BASE = 'https://taabi-ai.github.io/tg-notify/';
 const LOCAL_VIDEO_FILES = [
   'bolt-detection.mp4',
   'bolt-multi-size-detection.mp4',
@@ -71,6 +72,11 @@ function categoryForIndex(index){
   const cycle = ['software','gps','safety','maintenance','fuel','compliance','critical'];
   return cycle[index % cycle.length];
 }
+function toTelegramPublicVideoUrl(url){
+  if(!url) return null;
+  if(/^https?:\/\//i.test(url)) return url;
+  return new URL(url.replace(/^\/+/,''), TELEGRAM_PUBLIC_VIDEO_BASE).toString();
+}
 
 let videos = [
   ...LOCAL_VIDEO_FILES.map((fileName, index)=>{
@@ -85,7 +91,7 @@ let videos = [
     views:'Ready for /sendVideo',
     desc:'Local video from docs/videos; cards preview using thumbnail playback and source link is restricted to github.com.',
     mp4Url:'videos/' + fileName,
-    telegramVideoUrl:null,
+    telegramVideoUrl:toTelegramPublicVideoUrl('videos/' + fileName),
     githubUrl:'https://github.com/intel-iot-devkit/sample-videos/blob/master/' + fileName,
     customerGroupId: tgGroups[index % tgGroups.length]?.id || tgGroups[0]?.id || null,
     isCritical,
@@ -286,13 +292,7 @@ function ytLink(v){
   return v.githubUrl || GITHUB_SOURCE_LINK;
 }
 function telegramVideoLink(v){
-  if(v.telegramVideoUrl) return v.telegramVideoUrl;
-  if(v.mp4Url && /^https:\/\//i.test(v.mp4Url)) return v.mp4Url;
-  if(v.mp4Url){
-    // Resolve local docs/videos paths to a fully-qualified public URL (e.g. GitHub Pages).
-    return new URL(v.mp4Url, window.location.href).toString();
-  }
-  return ytLink(v);
+  return toTelegramPublicVideoUrl(v.telegramVideoUrl) || toTelegramPublicVideoUrl(v.mp4Url) || ytLink(v);
 }
 function getDefaultGroup(){
   return tgGroups.find(g=>g.isDefault) || tgGroups[0] || null;
@@ -497,13 +497,14 @@ async function confirmPost(){
     for(const v of target.videos){
       const link = ytLink(v);
       const caption = '📹 ' + v.title + '\n🏢 ' + v.channel + ' · ' + v.views + '\n\n' + link;
+      const videoUrl = telegramVideoLink(v);
       try {
         let apiMethod, payload;
         if(v.mp4Url){
           apiMethod = 'sendVideo';
           payload = {
             chat_id: group.chatId,
-            video: telegramVideoLink(v),
+            video: videoUrl,
             caption: caption,
             supports_streaming: true
           };
@@ -522,8 +523,31 @@ async function confirmPost(){
         });
         const data = await res.json();
         if(!data.ok){
+          const desc = data.description || 'Unknown error';
+          const shouldFallbackToMessage = apiMethod === 'sendVideo';
+
+          if(shouldFallbackToMessage){
+            const fallbackText = caption + '\n\n⚠️ Video could not be uploaded directly. Open source link:\n' + videoUrl;
+            const fallbackRes = await fetch('https://api.telegram.org/bot' + group.botToken + '/sendMessage', {
+              method: 'POST',
+              headers: {'Content-Type':'application/json'},
+              body: JSON.stringify({
+                chat_id: group.chatId,
+                text: fallbackText,
+                disable_web_page_preview: false
+              })
+            });
+            const fallbackData = await fallbackRes.json();
+            if(!fallbackData.ok){
+              allOk = false;
+              failReason = group.name + ': ' + (fallbackData.description || desc);
+              break;
+            }
+            continue;
+          }
+
           allOk = false;
-          failReason = group.name + ': ' + (data.description || 'Unknown error');
+          failReason = group.name + ': ' + desc;
           break;
         }
       } catch(err){
@@ -615,7 +639,7 @@ function addVideo(){
     views:document.getElementById('add-views').value.trim()||'–',
     desc:document.getElementById('add-desc').value.trim()||'',
     mp4Url: mp4Url||null,
-    telegramVideoUrl: mp4Url&&/^https:\/\//i.test(mp4Url) ? mp4Url : null,
+    telegramVideoUrl: toTelegramPublicVideoUrl(mp4Url),
     githubUrl: url.includes('github.com') ? url : GITHUB_SOURCE_LINK,
     customerGroupId,
     isCritical,
